@@ -44,6 +44,12 @@ dotnet user-secrets set "ConnectionStrings:LoanTracker" \
 Both steps fail loudly rather than silently if you skip them: `docker compose` refuses
 to start without `.env`, and the API throws a named error on boot without the secret.
 
+> **If you cloned this repo before the credential was moved out**, the old password is
+> still in git history and your existing Postgres volume was created with it. Changing
+> `.env` alone does not change the running database's password — drop the volume once:
+> `docker compose down -v`, then `docker compose up -d`. Local data is synthetic seed
+> data and is recreated on the next API start.
+
 ### 1. Database
 
 ```bash

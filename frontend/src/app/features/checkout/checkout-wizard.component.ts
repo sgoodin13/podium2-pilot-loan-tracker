@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +15,7 @@ import { ItemService } from '../../core/services/item.service';
 import { LoanService } from '../../core/services/loan.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { EmptyStateComponent } from '../../shared/empty-state.component';
+import { FocusOnCreateDirective } from '../../shared/focus-on-create.directive';
 
 /**
  * The Checkout wizard — `scr-checkout-wizard`, Pattern 06, REQ-3.1 to REQ-3.4.
@@ -42,6 +43,7 @@ import { EmptyStateComponent } from '../../shared/empty-state.component';
     MatTableModule,
     MatProgressSpinnerModule,
     EmptyStateComponent,
+    FocusOnCreateDirective,
   ],
   templateUrl: './checkout-wizard.component.html',
   styleUrl: './checkout-wizard.component.scss',
@@ -143,22 +145,30 @@ export class CheckoutWizardComponent implements OnInit {
   // --- Navigation ----------------------------------------------------------
 
   /**
-   * The panel that is currently rendered. Only one of the three `@if (step() === N)`
-   * branches exists at a time, so this resolves to the live one.
+   * True once the user has moved between steps at least once.
+   *
+   * Step 1 is present at initial render, so focusing it unconditionally would steal
+   * focus on page load and defeat the skip link. Steps 2 and 3 can only exist after a
+   * transition, so they focus unconditionally.
    */
-  @ViewChild('stepPanel') private stepPanel?: ElementRef<HTMLElement>;
+  readonly navigated = signal(false);
 
   /**
-   * Every step transition swaps the whole card, which removes the button that had
-   * focus and drops focus to `<body>` — leaving a keyboard user to Tab from the top
-   * of the document on each of the three steps (Compliance finding F6).
+   * Every step transition swaps the whole card, which removes the button that had focus
+   * and drops focus to `<body>` — leaving a keyboard user to Tab from the top of the
+   * document on each of the three steps (Compliance finding F6). The panel carries
+   * `tabindex="-1"` so it can receive focus without joining the Tab order, and the
+   * existing `role="status"` "Step N of 3" announcer covers the announcement half.
    *
-   * The panel carries `tabindex="-1"` so it can receive focus without joining the Tab
-   * order. The existing `role="status"` "Step N of 3" announcer covers the
-   * announcement; this covers the focus half that CLAUDE.md §Accessibility requires.
+   * The focus itself is bound to each panel's own lifecycle via `ltFocusOnCreate`
+   * rather than driven from here. Two attempts to drive it from this class failed
+   * silently: a `queueMicrotask` lost the race with change detection, and a `@ViewChild`
+   * per step still focused a detached element when stepping backwards. Both read as
+   * correct code, and the only thing that ever caught either was the `toBeFocused()`
+   * assertions in `focus-management.spec.ts`.
    */
-  private focusCurrentStep(): void {
-    queueMicrotask(() => this.stepPanel?.nativeElement.focus());
+  private markNavigated(): void {
+    this.navigated.set(true);
   }
 
   next(): void {
@@ -167,13 +177,13 @@ export class CheckoutWizardComponent implements OnInit {
     if (this.step() === 1 && this.canAdvanceFromBorrower()) {
       this.step.set(2);
       this.loadItems();
-      this.focusCurrentStep();
+      this.markNavigated();
       return;
     }
 
     if (this.step() === 2 && this.canAdvanceFromItem()) {
       this.step.set(3);
-      this.focusCurrentStep();
+      this.markNavigated();
     }
   }
 
@@ -182,13 +192,13 @@ export class CheckoutWizardComponent implements OnInit {
 
     if (this.step() === 3) {
       this.step.set(2);
-      this.focusCurrentStep();
+      this.markNavigated();
       return;
     }
 
     if (this.step() === 2) {
       this.step.set(1);
-      this.focusCurrentStep();
+      this.markNavigated();
     }
   }
 
@@ -199,7 +209,7 @@ export class CheckoutWizardComponent implements OnInit {
     this.step.set(2);
     // Refetch: the item that was taken should no longer appear as available.
     this.loadItems();
-    this.focusCurrentStep();
+    this.markNavigated();
   }
 
   // --- Step 3: commit ------------------------------------------------------
@@ -241,6 +251,12 @@ export class CheckoutWizardComponent implements OnInit {
         this.rejection.set(
           problem.detail ?? 'Could not complete the checkout. Nothing was saved.',
         );
+
+        // Focus moves to the rejection panel, which carries the reason and contains
+        // the only recovery control. That is done by `ltFocusOnCreate` on the element
+        // itself rather than from here: the step does not change, so the
+        // step-transition move never fires, and a ViewChild query into this nested
+        // `@if` did not resolve in time — it focused nothing at all, silently.
       },
     });
   }
@@ -253,6 +269,6 @@ export class CheckoutWizardComponent implements OnInit {
     this.borrowerSearch.set('');
     this.itemSearch.set('');
     this.loadBorrowers();
-    this.focusCurrentStep();
+    this.markNavigated();
   }
 }

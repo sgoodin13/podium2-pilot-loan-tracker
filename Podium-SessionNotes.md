@@ -259,11 +259,60 @@ one did not survive that check, and it is recorded as rejected rather than dropp
 | F9 | `docs/Podium-SecurityFindings.md` understated the production-reachable Angular advisories as **one**; there are ten | Corrected, with the full advisory table and — more usefully — exposure evidence that covers all ten. See Scan 3 in that file. |
 | F4/F13 | C4 (i18n) and C5 (entity-local timestamps) **claimed implemented in these very notes and absent from the code** | Claims corrected above. The conventions themselves need an Orchestrator ruling — see below. |
 
-### Rejected after verification (1)
+### F12 — I rejected this, and I was wrong
 
-- **F12 — a claimed fourth SSH.NET advisory in `Api.Tests`.** Did not reproduce.
-  `dotnet list package --vulnerable --include-transitive` returns three rows and SSH.NET
-  appears once. Scan 2's figure was already correct; the record is left as it was.
+I reported that a claimed fourth SSH.NET advisory "did not reproduce." It reproduces on
+every run. `dotnet list package --vulnerable` prints a second advisory for the same
+package on a **continuation line** with the package and version columns blank, and the
+grep I used to read the output dropped that line. Counting package rows gives 3;
+counting advisories gives 4.
+
+The correct figure is **3 vulnerable packages carrying 4 high advisories**, all
+test-only. `docs/Podium-SecurityFindings.md` is corrected in Scans 2 and 3, including a
+note about the filtering mistake — the same grep would hide the same class of advisory
+again. `Api`, the shipped service, remains clean.
+
+### Re-verification round 2 — the fixes were audited, and two did not hold
+
+The Compliance/Security Engineer re-verified every fix against disk rather than against
+my description, re-ran all three test layers independently, and found two real problems
+in my own work:
+
+| # | What was wrong | Fix |
+|---|---|---|
+| **F5 regression** | `ItemCategoryResponse.ActiveItemCount` defaulted to `0`, and only `ListAsync` passed a real value. The frontend overwrites its row from the save response, so editing a category's *description* zeroed the count client-side and **silently disarmed the deactivation confirmation for the next edit of that row** — reintroducing exactly what F5 existed to prevent. My test missed it by asserting the list endpoint at both ends, exercising the one call site that was correct. | Removed the default so the compiler finds every call site; `CreateAsync` passes `0` explicitly, `UpdateAsync` resolves the real count. New test asserts the **update** response. |
+| **F6 incomplete** | The checkout `confirm()` error handler had no focus move. The step does not change there, so the step-transition handler never fired — but the confirm button is still destroyed and replaced by the rejection panel. The single most important interaction in the product, and the one a keyboard user has just triggered. | Focus moved to the rejection panel itself, which carries the reason and contains the only recovery control. |
+
+**And the F6 fixes themselves did not work.** Four `toBeFocused()` assertions were added
+at the auditor's suggestion. **All four failed on first run.** The `queueMicrotask` +
+`@ViewChild` pattern loses the race with Angular's change detection; the optional
+chaining turned every miss into a silent no-op. The code read as correct, the markup was
+faultless, and **axe reported a clean page throughout** — automated a11y scanning cannot
+see this class of defect at all.
+
+Two further rounds were needed before they passed:
+
+1. `queueMicrotask` → a macrotask (`focusWhenRendered`), which fixed the return panel and
+   item edit mode but not the wizard.
+2. The wizard's three sibling `@if` branches all carried the same `#stepPanel` ref, and
+   the query did not refresh across a branch swap — stepping backwards focused a detached
+   element. Replaced with `ltFocusOnCreate`, a directive that binds focus to each
+   element's own lifecycle, removing the timing question entirely. Step 1 binds it to a
+   `navigated()` signal so it does not steal focus on initial render and defeat the skip
+   link.
+
+Three of the four focus fixes shipped in the previous commit did nothing. The only reason
+that is known is the tests — which is the finding worth carrying: **an a11y fix with no
+`toBeFocused()` assertion is an unverified claim**, and the green axe run says nothing
+about it either way.
+
+### One process note, recorded because it nearly caused a false conclusion
+
+Two Playwright runs in this session produced failures that were **not** code defects: the
+Angular dev server had died in one case, and was still recompiling in the other
+(`ng build` writes `dist/` — it does not wait for `ng serve`). Both times the honest first
+reading was "the change broke it." Re-running after confirming the server state is the
+correct discipline; reporting the passing retry without stating why it was retried is not.
 
 ### Carried for the Orchestrator (3)
 
@@ -289,9 +338,9 @@ not be carried as silently satisfied.
 | Layer | Result |
 |---|---|
 | `dotnet build` / `ng build` | clean, 0 warnings |
-| Backend (xUnit + Testcontainers) | **100 passed, 0 failed** — 92 before, +8 new F2/F5 guard tests |
+| Backend (xUnit + Testcontainers) | **101 passed, 0 failed** — 92 before, +9 new F2/F5 guard tests |
 | Frontend unit (Jasmine/Karma) | **29 passed, 0 failed** |
-| E2E + a11y (Playwright, headed, single worker) | **35 passed, 0 failed**; 35 skipped by project guard |
+| E2E + a11y (Playwright, headed, single worker) | **39 passed, 0 failed**; 39 skipped by project guard — 35 before, +4 new focus-management specs |
 | a11y scans | 18 desktop + 2 mobile, **0 WCAG 2.2 AA violations** — count unchanged after the F6/F8 markup changes |
 
 One honest note on that run: the first pass reported 13 failures. The cause was the

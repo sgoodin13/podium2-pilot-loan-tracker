@@ -254,4 +254,50 @@ public class ReferenceDataGuardTests(PostgresFixture fixture)
 
         after.ActiveItemCount.Should().Be(2);
     }
+
+    /// <summary>
+    /// The count has to be right on the UPDATE response too, not just the list.
+    /// </summary>
+    /// <remarks>
+    /// The first version of the F5 fix defaulted the count to zero and only populated it
+    /// on <c>ListAsync</c>. The frontend overwrites its row from the save response, so one
+    /// unrelated edit — changing a description — zeroed the count client-side and
+    /// silently disarmed the deactivation confirmation for the next edit of that row.
+    /// The original test missed it by asserting the list endpoint at both ends, which
+    /// exercised the one call site that was correct.
+    /// </remarks>
+    [Fact]
+    public async Task Category_update_response_carries_the_active_item_count_not_zero()
+    {
+        ItemCategoryResponse category;
+
+        await using (var harness = fixture.CreateHarness())
+        {
+            category = await harness.Categories.CreateAsync(
+                new ItemCategoryRequest { Name = $"Rigging {TestData.Unique()}", IsActive = true });
+
+            // A category that does not exist yet genuinely has no references.
+            category.ActiveItemCount.Should().Be(0);
+        }
+
+        await using var arrange = fixture.CreateContext();
+        await TestData.AddItemAsync(arrange, category.Id);
+        await TestData.AddItemAsync(arrange, category.Id);
+        await TestData.AddItemAsync(arrange, category.Id);
+
+        await using var updating = fixture.CreateHarness();
+
+        // An edit that touches only the description — the exact sequence that used to
+        // zero the count and disarm the confirmation.
+        var updated = await updating.Categories.UpdateAsync(
+            category.Id,
+            new ItemCategoryRequest
+            {
+                Name = category.Name,
+                Description = "Slings, shackles and spreader bars",
+                IsActive = true,
+            });
+
+        updated.ActiveItemCount.Should().Be(3);
+    }
 }

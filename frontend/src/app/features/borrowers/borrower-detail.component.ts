@@ -29,6 +29,7 @@ import {
 } from '../../shared/confirm-dialog.component';
 import { EmptyStateComponent } from '../../shared/empty-state.component';
 import { GuardBannerComponent } from '../../shared/guard-banner.component';
+import { focusWhenRendered } from '../../shared/focus';
 
 /**
  * Borrower detail — REQ-2.3, `scr-borrower-detail`, Pattern 12 (one-to-many list).
@@ -193,7 +194,7 @@ export class BorrowerDetailComponent implements OnInit {
 
     // Focus moves into the newly revealed form rather than being left behind on
     // a button that is no longer on screen.
-    queueMicrotask(() => this.editNameInput?.nativeElement.focus());
+    focusWhenRendered(() => this.editNameInput);
   }
 
   cancelEdit(): void {

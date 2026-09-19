@@ -19,6 +19,7 @@ import {
   ConfirmDialogData,
 } from '../../shared/confirm-dialog.component';
 import { EmptyStateComponent } from '../../shared/empty-state.component';
+import { focusWhenRendered } from '../../shared/focus';
 import { GuardBannerComponent } from '../../shared/guard-banner.component';
 
 /**
@@ -146,7 +147,7 @@ export class ItemDetailComponent implements OnInit {
     // Entering edit mode replaces the read-only view with the form, so focus is
     // moved into it deliberately — matching borrower-detail, which already did
     // this (Compliance finding F6).
-    queueMicrotask(() => this.editNameInput?.nativeElement.focus());
+    focusWhenRendered(() => this.editNameInput);
   }
 
   @ViewChild('editNameInput') private editNameInput?: ElementRef<HTMLInputElement>;

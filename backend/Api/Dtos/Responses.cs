@@ -13,15 +13,22 @@ public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, i
 /// effect named, per Standards Guide C3 — "does anything else reference this record."
 /// The backend already had to compute this to log it; returning it lets the UI ask
 /// before the save rather than after (Compliance finding F5).
+/// <para>
+/// It has NO default, deliberately. A default of zero made the create and update call
+/// sites look correct while silently returning "nothing references this" — and the
+/// frontend overwrites its row from the save response, so one unrelated edit disarmed
+/// the confirmation for the next one. Requiring the argument makes the compiler find
+/// every call site instead.
+/// </para>
 /// </remarks>
 public record ItemCategoryResponse(
     Guid Id,
     string Name,
     string? Description,
     bool IsActive,
-    int ActiveItemCount = 0)
+    int ActiveItemCount)
 {
-    public static ItemCategoryResponse From(ItemCategory c, int activeItemCount = 0) =>
+    public static ItemCategoryResponse From(ItemCategory c, int activeItemCount) =>
         new(c.Id, c.Name, c.Description, c.IsActive, activeItemCount);
 }
 

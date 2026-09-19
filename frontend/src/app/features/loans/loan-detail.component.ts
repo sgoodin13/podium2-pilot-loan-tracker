@@ -12,6 +12,7 @@ import { Loan, LoanStatus, ProblemDetails } from '../../core/models/api.models';
 import { LoanService } from '../../core/services/loan.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ReferenceDataService } from '../../core/services/reference-data.service';
+import { focusWhenRendered } from '../../shared/focus';
 
 /**
  * Loan detail — `scr-loan-detail`, Pattern 15 (approval/status workflow adapted
@@ -101,7 +102,7 @@ export class LoanDetailComponent implements OnInit {
     this.returnError.set(null);
 
     // The panel replaces the trigger in the DOM, so wait for the render.
-    queueMicrotask(() => this.returnPanelHeading?.nativeElement.focus());
+    focusWhenRendered(() => this.returnPanelHeading);
   }
 
   cancelReturn(): void {
@@ -110,7 +111,7 @@ export class LoanDetailComponent implements OnInit {
     this.returnError.set(null);
 
     // Back to the control the user came from.
-    queueMicrotask(() => this.returnTrigger?.nativeElement.focus());
+    focusWhenRendered(() => this.returnTrigger);
   }
 
   confirmReturn(): void {

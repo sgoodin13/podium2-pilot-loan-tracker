@@ -76,7 +76,8 @@ public class ItemCategoryService(
 
         logger.LogInformation("Item category created: {CategoryId}", category.Id);
 
-        return ItemCategoryResponse.From(category);
+        // A category that did not exist a moment ago cannot be referenced yet.
+        return ItemCategoryResponse.From(category, activeItemCount: 0);
     }
 
     public async Task<ItemCategoryResponse> UpdateAsync(
@@ -112,7 +113,14 @@ public class ItemCategoryService(
         categories.Update(category);
         await categories.SaveChangesAsync(ct);
 
-        return ItemCategoryResponse.From(category);
+        // The real count, not zero: the frontend overwrites its row from this response,
+        // so returning zero here would disarm the deactivation confirmation for the next
+        // edit of the same row.
+        var counts = await categories.GetActiveItemCountsAsync([category.Id], ct);
+
+        return ItemCategoryResponse.From(
+            category,
+            counts.TryGetValue(category.Id, out var activeItems) ? activeItems : 0);
     }
 
     private static string Normalize(string value)

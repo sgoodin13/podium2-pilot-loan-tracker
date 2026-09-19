@@ -70,9 +70,9 @@ Commands: `dotnet list package --vulnerable --include-transitive` (per project) 
 | Project | Result |
 |---|---|
 | `Api` — **the shipped service** | **No vulnerable packages.** |
-| `Api.Tests` — test-only, never deployed | 3 high: `SSH.NET` 2023.0.0 ([GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284)), `System.Net.Http` 4.3.0 ([GHSA-7jgj-8wvc-jh57](https://github.com/advisories/GHSA-7jgj-8wvc-jh57)), `System.Text.RegularExpressions` 4.3.0 ([GHSA-cmhx-cq75-c4mj](https://github.com/advisories/GHSA-cmhx-cq75-c4mj)) |
+| `Api.Tests` — test-only, never deployed | 3 packages, 4 high advisories (corrected at Scan 3): `SSH.NET` 2023.0.0 ([GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284)), `System.Net.Http` 4.3.0 ([GHSA-7jgj-8wvc-jh57](https://github.com/advisories/GHSA-7jgj-8wvc-jh57)), `System.Text.RegularExpressions` 4.3.0 ([GHSA-cmhx-cq75-c4mj](https://github.com/advisories/GHSA-cmhx-cq75-c4mj)) |
 
-All three test findings are transitive dependencies of `Testcontainers.PostgreSql`
+All four test findings are transitive dependencies of `Testcontainers.PostgreSql`
 3.10.0, which exists so BR-1 can be asserted against a **real** Postgres rather than
 EF Core InMemory — InMemory cannot honour a filtered unique index, so dropping
 Testcontainers would silently weaken the pilot's single most important test. These
@@ -177,11 +177,22 @@ advisory database and the source tree; none of it was exercised against a runnin
 `dotnet list package --vulnerable --include-transitive` re-run per project:
 
 - **`Api`, the shipped service: no vulnerable packages.** Independently confirmed.
-- `Api.Tests`: **exactly the 3 high advisories already recorded** in Scan 2 — `SSH.NET`
-  ([GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284)),
-  `System.Net.Http`, `System.Text.RegularExpressions`.
+- `Api.Tests`: **3 vulnerable packages carrying 4 high advisories.**
 
-Compliance/Security Engineer reported a fourth (`GHSA-mggc-4xg6-vcxf`, a second SSH.NET
-advisory) and recommended correcting the record. **It did not reproduce.** The tool
-returns three rows, and SSH.NET appears once. Scan 2's figure was correct and is left
-as-is — recorded here because a rejected finding is part of the evidence too.
+| Package | Advisories |
+|---|---|
+| `SSH.NET` 2023.0.0 | [GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284) **and** [GHSA-mggc-4xg6-vcxf](https://github.com/advisories/GHSA-mggc-4xg6-vcxf) |
+| `System.Net.Http` 4.3.0 | [GHSA-7jgj-8wvc-jh57](https://github.com/advisories/GHSA-7jgj-8wvc-jh57) |
+| `System.Text.RegularExpressions` 4.3.0 | [GHSA-cmhx-cq75-c4mj](https://github.com/advisories/GHSA-cmhx-cq75-c4mj) |
+
+**Scan 2's "3 high" was a miscount, and so was this scan's first attempt to correct it.**
+`dotnet list package --vulnerable` prints a second advisory for the same package on a
+*continuation line* with the package and version columns left blank. Counting package
+rows gives 3; counting advisories gives 4. A first pass here filtered the output with a
+grep that dropped the continuation line entirely and concluded the fourth advisory "did
+not reproduce" — it reproduces on every run, and the filter was at fault, not the tool.
+Recorded rather than quietly amended, because the same grep would hide the same class of
+advisory again.
+
+Nothing substantive changes: `Api` is clean, and all four are test-only, reachable only
+via `Testcontainers.PostgreSql` during `dotnet test`.
