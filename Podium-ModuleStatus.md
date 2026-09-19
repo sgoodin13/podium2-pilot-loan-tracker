@@ -97,3 +97,32 @@ post-merge.
    test volume floor/ceiling; that rule actually lives in `Podium2_Template.md:244`.
 4. **CLAUDE.md component count** — says "≈14 components"; the architecture says 25. Built
    to 25.
+
+---
+
+## Post-Gate-4 — Compliance/Security closure
+
+**Signed clean at `b18ac9f`** after four adversarial rounds (13 findings + 1 environment
+gap, then 2, then 3, then 1). All closed, ruled on, or carried with an Orchestrator
+decision. Gaps 1–4 above are all now ruled — see `trigger_spec_LoanTracker.md` §4.
+
+Final verification, each gate re-run independently by the auditor and matched:
+
+| Gate | Result |
+|---|---|
+| Backend (xUnit + Testcontainers) | 101 / 101 |
+| Frontend unit (Jasmine/Karma) | 29 / 29 |
+| E2E + a11y (Playwright, headed, 1 worker) | 44 / 44 — run under concurrent DB mutation by both parties |
+| axe WCAG 2.2 AA | 20 scans, 0 violations |
+
+**Two markers that this sign-off does NOT discharge:**
+
+- `live-owed` on the Angular advisory family — Scan 3 is static verification against the
+  advisory database and the source tree only, never exercised against a running system.
+- **SonarQube unexecuted** — declined by Orchestrator ruling, so a recorded decision
+  rather than an omission, but still a real gap in the audit's coverage rather than a pass.
+
+**Two observations carried to the next session, deliberately not fixed** (changing code
+after sign-off would invalidate the verification it rests on): `BorrowerRepository`'s
+unreachable `department` filter parameter, and a confirmed-clean re-check that the list
+sort allow-lists still match the UI's sort headers. Detail in `Podium-SessionNotes.md`.

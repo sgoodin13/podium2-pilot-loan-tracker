@@ -379,6 +379,43 @@ The 90 synthetic probe items were then **retired, not deleted** — soft-delete 
 for this product, so retiring them is the only permitted cleanup and they remain as
 inactive rows.
 
+#### Compliance sign-off — clean at `b18ac9f`
+
+Signed clean after four rounds. The auditor reproduced the flaky-assertion failure
+condition itself rather than accepting my three runs — re-running the three formerly-flaky
+specs while creating **140 rows concurrently** (70 items, 70 borrowers, interleaved). 6/6
+passed; under the old assertions that run fails. It then soft-deleted its own churn.
+
+All four gates were re-run independently and matched. Findings across the four rounds:
+**13 + 1 environment gap**, then 2, then 3, then 1 — all closed, ruled on, or carried with
+an Orchestrator decision.
+
+**Two things it asked be visible at Gate 5 rather than buried, and I agree:**
+
+1. **`live-owed` still stands on the Angular advisory family.** Everything in Scan 3 is
+   static verification against the advisory database and the source tree. It has never
+   been exercised against a running system. The Tier 2 ruling did not discharge that
+   marker and the sign-off does not either.
+2. **SonarQube is genuinely unexecuted** — probed across two rounds (PATH, `dotnet tool
+   list`, config files, Docker images), nothing installed, nothing fabricated. Now a
+   recorded Orchestrator decision rather than an omission, but still a real gap in the
+   audit's coverage, not a pass.
+
+#### Two observations carried, deliberately not fixed
+
+Both verified against disk. **Neither was actioned, on purpose:** changing code after the
+sign-off would invalidate the verification it rests on. They belong to the next session.
+
+| # | Observation | Why it is not a defect today |
+|---|---|---|
+| **O1** | `BorrowerRepository.GetPagedAsync` takes a `department` parameter with a real, correct `Where` clause (lines 27, 47–49) that **no caller ever supplies** — `BorrowersController.List` does not accept it and `BorrowerService.ListAsync` has no such argument. Unreachable code, the same shape as QA's D2. | No user-facing impact: the borrower list uses department as a display column and sort header only, never as a filter, so no screen promises behaviour that does not happen. A future session should either wire it or remove it. |
+| **O2** | Sorting was re-checked specifically because "sorting was a visible lie" is the kind of bug that returns. The borrower list exposes `mat-sort-header` for `name` and `department`; the repository allow-list (lines 55–60) handles exactly those two. | **Clean** — they match. Recorded as a confirmed negative, because a check that found nothing is still evidence.|
+
+An avenue worth recording because it was investigated and closed: substituting a
+`department` query-parameter assertion for the removed global count **would not have
+worked**, since that parameter is silently ignored (O1). Verified live — a request with
+`department=NoSuchDeptXYZ` returns the same `totalCount` as one without it.
+
 #### Latch-flag note for whoever adds a reload path next
 
 `navigated()`, `returnPanelWasOpen()`, `editSessionEnded()` and `justSelected()` are latch
