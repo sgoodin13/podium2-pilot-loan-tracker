@@ -1,0 +1,135 @@
+// LoanTracker — Angular Material theme + design tokens.
+//
+// SHARED CORE FILE (LoanTracker_Stack_Rules.md [SHARED_CORE_FILES]).
+// Never modify without Orchestrator approval.
+//
+// Token values are ported verbatim from design/ui-spec/assets/mockups.css, which is the
+// sole UI source (CLAUDE.md: "Never derive frontend layout from BRs"). Palette and
+// contrast pairings restate LoanTracker_UI_Standard.md §1.
+
+@use '@angular/material' as mat;
+
+// ---------------------------------------------------------------------------
+// Design tokens — the 18 custom properties from mockups.css, verbatim, plus one
+// addition noted below.
+// ---------------------------------------------------------------------------
+:root {
+  --navy: #1a4d8f;
+  --navy-dark: #0f3866;
+  --accent: #2563a8;
+  --accent-light: #eaf1fb;
+
+  --page: #f4f6f9;
+  --card: #ffffff;
+  --surface-2: #f9fafb;
+  --border: #e1e5ea;
+
+  --ink: #1f2937;
+  --mid: #5b6472;
+  --muted: #8a93a3;
+
+  --good: #1e8449;
+  --fair: #f0b429;
+  --poor: #d64545;
+  --unknown: #9aa5b1;
+
+  --radius-card: 8px;
+  --radius-ctl: 4px;
+
+  // Added at Gate 3 (fork B13). The rejection red appeared only as an inline
+  // literal (#791F1F) in scr-checkout-wizard.html and index.html. Tokenised so
+  // Compliance/Security can audit the pairing in one place rather than two.
+  // Contrast: #791F1F on #fbe9e9 = 8.9:1 — passes WCAG 2.2 AA for normal text.
+  --danger-dark: #791f1f;
+  --danger-bg: #fbe9e9;
+
+  // Chip backgrounds, likewise inline-only in the mockups.
+  --chip-available-bg: #e6f4ea;
+  --chip-warn-bg: #fdf3e0;
+  --chip-warn-ink: #8a5a0a;
+}
+
+// ---------------------------------------------------------------------------
+// Material palette. Built from the brand navy so mat-* components inherit the
+// same colour the mockups use, rather than Material's indigo default.
+// ---------------------------------------------------------------------------
+$lt-navy-palette: (
+  50: #eaf1fb,
+  100: #c5d8f2,
+  200: #9dbce8,
+  300: #74a0de,
+  400: #568bd7,
+  500: #1a4d8f,
+  600: #17457f,
+  700: #133b6d,
+  800: #0f3866,
+  900: #0a2547,
+  contrast: (
+    50: #1f2937,
+    100: #1f2937,
+    200: #1f2937,
+    300: #1f2937,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+  )
+);
+
+$lt-danger-palette: (
+  50: #fbe9e9,
+  100: #f4c4c4,
+  200: #ec9c9c,
+  300: #e47373,
+  400: #dd5757,
+  500: #d64545,
+  600: #c23c3c,
+  700: #a83232,
+  800: #791f1f,
+  900: #5c1616,
+  contrast: (
+    50: #1f2937,
+    100: #1f2937,
+    200: #1f2937,
+    300: #1f2937,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+  )
+);
+
+$lt-primary: mat.m2-define-palette($lt-navy-palette, 500, 300, 800);
+$lt-accent: mat.m2-define-palette($lt-navy-palette, 400, 200, 700);
+$lt-warn: mat.m2-define-palette($lt-danger-palette, 500, 300, 800);
+
+// Typography — the system stack from LoanTracker_UI_Standard.md §1, deliberately
+// NOT Material's Roboto-first default. Scale: H1 28 / H2 22 / H3 18 / body 14 /
+// caption 12; weights 400 and 600 only (no 300, no 700).
+$lt-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+$lt-typography: mat.m2-define-typography-config(
+  $font-family: $lt-font-family,
+  $headline-5: mat.m2-define-typography-level(28px, 36px, 600),
+  $headline-6: mat.m2-define-typography-level(22px, 30px, 600),
+  $subtitle-1: mat.m2-define-typography-level(18px, 26px, 600),
+  $subtitle-2: mat.m2-define-typography-level(14px, 22px, 600),
+  $body-1: mat.m2-define-typography-level(14px, 21px, 400),
+  $body-2: mat.m2-define-typography-level(14px, 21px, 400),
+  $caption: mat.m2-define-typography-level(12px, 18px, 400),
+  $button: mat.m2-define-typography-level(13.5px, 20px, 600),
+);
+
+$lt-theme: mat.m2-define-light-theme((
+  color: (primary: $lt-primary, accent: $lt-accent, warn: $lt-warn),
+  typography: $lt-typography,
+  density: 0,
+));
+
+@include mat.core();
+@include mat.all-component-themes($lt-theme);
+@include mat.typography-hierarchy($lt-typography);

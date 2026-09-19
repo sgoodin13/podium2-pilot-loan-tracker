@@ -1,0 +1,277 @@
+<div class="lt-breadcrumb">Checkout</div>
+
+<div class="lt-toolbar">
+  <h1>Checkout</h1>
+</div>
+
+<!-- Stepper. aria-current marks the active step for screen readers, since the
+     done/active/todo distinction is otherwise purely visual. -->
+<div class="lt-stepper" role="group" aria-label="Checkout steps">
+  <div class="lt-step" [class.done]="step() > 1" [class.active]="step() === 1" [class.todo]="step() < 1">
+    <div class="dot" aria-hidden="true">{{ step() > 1 ? '✓' : '1' }}</div>
+    <div class="lbl" [attr.aria-current]="step() === 1 ? 'step' : null">Borrower</div>
+  </div>
+
+  <div class="lt-connector" [class.done]="step() > 1"></div>
+
+  <div class="lt-step" [class.done]="step() > 2" [class.active]="step() === 2" [class.todo]="step() < 2">
+    <div class="dot" aria-hidden="true">{{ step() > 2 ? '✓' : '2' }}</div>
+    <div class="lbl" [attr.aria-current]="step() === 2 ? 'step' : null">Item</div>
+  </div>
+
+  <div class="lt-connector" [class.done]="step() > 2"></div>
+
+  <div class="lt-step" [class.active]="step() === 3" [class.todo]="step() < 3">
+    <div class="dot" aria-hidden="true">3</div>
+    <div class="lbl" [attr.aria-current]="step() === 3 ? 'step' : null">Confirm</div>
+  </div>
+</div>
+
+<span class="lt-sr-only" role="status">Step {{ step() }} of 3</span>
+
+<!-- ===================== STEP 1 — SELECT BORROWER (t1) ===================== -->
+@if (step() === 1) {
+  <div class="lt-card" data-testid="checkout-step-1">
+    <h3>Select borrower</h3>
+
+    <div class="lt-toolbar-row">
+      <mat-form-field class="search-field">
+        <mat-label>Search borrowers</mat-label>
+        <input
+          matInput
+          type="search"
+          placeholder="Search borrowers…"
+          [ngModel]="borrowerSearch()"
+          (ngModelChange)="onBorrowerSearch($event)"
+          data-testid="checkout-borrower-search"
+        />
+      </mat-form-field>
+    </div>
+
+    @if (loadingBorrowers()) {
+      <div class="lt-spinner-wrap">
+        <mat-progress-spinner mode="indeterminate" diameter="40" />
+        <span class="lt-sr-only" role="status">Loading borrowers</span>
+      </div>
+    } @else if (borrowers().length === 0) {
+      <app-empty-state
+        variant="no-results"
+        title="No active borrowers match"
+        hint="Only active borrowers can take out a loan."
+        [showClear]="false"
+        testId="checkout-borrower-empty"
+      />
+    } @else {
+      <mat-radio-group
+        class="borrower-list"
+        aria-label="Select a borrower"
+        [ngModel]="selectedBorrower()?.id"
+        data-testid="checkout-borrower-list"
+      >
+        @for (borrower of borrowers(); track borrower.id) {
+          <mat-radio-button
+            class="borrower-option"
+            [value]="borrower.id"
+            (change)="selectBorrower(borrower)"
+            [attr.data-testid]="'checkout-borrower-' + borrower.name"
+          >
+            <span class="b-name">{{ borrower.name }}</span>
+            @if (borrower.department) {
+              <span class="b-dept">{{ borrower.department }}</span>
+            }
+          </mat-radio-button>
+        }
+      </mat-radio-group>
+    }
+
+    <div class="lt-wizard-nav">
+      <span></span>
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!canAdvanceFromBorrower()"
+        (click)="next()"
+        data-testid="checkout-next-to-item"
+      >
+        Next: Item →
+      </button>
+    </div>
+  </div>
+
+  <p class="lt-a11y-note">
+    Only active borrowers are selectable, and a borrower is required before you can continue.
+  </p>
+}
+
+<!-- ===================== STEP 2 — SELECT ITEM (t2) ========================= -->
+@if (step() === 2) {
+  <div class="lt-card" data-testid="checkout-step-2">
+    <div class="lt-context-line">
+      Borrower selected: <strong>{{ selectedBorrower()?.name }}</strong> · Step 2 of 3
+    </div>
+
+    <div class="lt-toolbar-row">
+      <mat-form-field class="search-field">
+        <mat-label>Search available items</mat-label>
+        <input
+          matInput
+          type="search"
+          placeholder="Search available items…"
+          [ngModel]="itemSearch()"
+          (ngModelChange)="onItemSearch($event)"
+          data-testid="checkout-item-search"
+        />
+      </mat-form-field>
+    </div>
+
+    @if (loadingItems()) {
+      <div class="lt-spinner-wrap">
+        <mat-progress-spinner mode="indeterminate" diameter="40" />
+        <span class="lt-sr-only" role="status">Loading available items</span>
+      </div>
+    } @else if (items().length === 0) {
+      <app-empty-state
+        variant="no-results"
+        title="No available items match"
+        hint="Every item is either on loan or retired."
+        [showClear]="false"
+        testId="checkout-item-empty"
+      />
+    } @else {
+      <table mat-table [dataSource]="items()" class="lt-table" data-testid="checkout-item-table">
+        <ng-container matColumnDef="assetTag">
+          <th mat-header-cell *matHeaderCellDef scope="col">Asset tag</th>
+          <td mat-cell *matCellDef="let item">{{ item.assetTag }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef scope="col">Name</th>
+          <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef scope="col">Category</th>
+          <td mat-cell *matCellDef="let item">{{ item.itemCategoryName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef scope="col">
+            <span class="lt-sr-only">Select</span>
+          </th>
+          <td mat-cell *matCellDef="let item">
+            @if (isSelected(item)) {
+              <button
+                mat-flat-button
+                color="primary"
+                [attr.aria-label]="'Selected ' + item.name + ' ' + item.assetTag"
+                [attr.data-testid]="'checkout-step2-select-' + item.assetTag"
+              >
+                Selected ✓
+              </button>
+            } @else {
+              <button
+                mat-stroked-button
+                (click)="selectItem(item)"
+                [attr.aria-label]="'Select ' + item.name + ' ' + item.assetTag"
+                [attr.data-testid]="'checkout-step2-select-' + item.assetTag"
+              >
+                Select
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="itemColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: itemColumns"
+          [class.selected-row]="isSelected(row)"
+        ></tr>
+      </table>
+
+      <p class="staleness" data-testid="checkout-staleness-note">
+        Only items with zero open loans appear here — this list can still be stale by the time
+        you confirm (see below).
+      </p>
+    }
+
+    <div class="lt-wizard-nav">
+      <button mat-stroked-button (click)="back()" data-testid="checkout-back-to-borrower">
+        ← Back
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!canAdvanceFromItem()"
+        (click)="next()"
+        data-testid="checkout-next-to-confirm"
+      >
+        Next: Confirm →
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ===================== STEP 3 — CONFIRM (t3) / REJECT (t4) =============== -->
+@if (step() === 3) {
+  <div class="lt-card" data-testid="checkout-step-3">
+    <h3>Confirm checkout</h3>
+
+    <!-- The confirmation names the specific item instance by asset tag, never
+         just its category. This is an SME requirement (BR §8) and what the
+         Compliance destructive-action review checks. -->
+    <div class="confirm-summary" data-testid="checkout-confirm-summary">
+      <div class="lt-detail-grid">
+        <div>
+          <div class="k">Item</div>
+          <div class="v">
+            <strong>{{ selectedItem()?.name }}</strong>
+            ({{ selectedItem()?.assetTag }})
+          </div>
+        </div>
+        <div>
+          <div class="k">Category</div>
+          <div class="v">{{ selectedItem()?.itemCategoryName }}</div>
+        </div>
+        <div>
+          <div class="k">Borrower</div>
+          <div class="v"><strong>{{ selectedBorrower()?.name }}</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- t4 — the rejection state. Inline, at the point of action. -->
+    @if (rejection()) {
+      <div class="lt-error-panel" role="alert" data-testid="checkout-rejection-panel">
+        <strong>Couldn't complete checkout.</strong> {{ rejection() }}
+      </div>
+      <button
+        mat-stroked-button
+        (click)="backToItemSelection()"
+        data-testid="checkout-back-to-item-selection"
+      >
+        ← Back to item selection
+      </button>
+    }
+
+    @if (!rejection()) {
+      <div class="lt-wizard-nav">
+        <button mat-stroked-button [disabled]="submitting()" (click)="back()">← Back</button>
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="submitting()"
+          (click)="confirm()"
+          data-testid="checkout-confirm"
+        >
+          {{ submitting() ? 'Checking out…' : 'Confirm checkout' }}
+        </button>
+      </div>
+    }
+  </div>
+
+  <p class="lt-a11y-note">
+    Availability is re-checked at the moment of commit, not when this list was drawn. If the item
+    was taken in between, the checkout is rejected and nothing is saved.
+  </p>
+}

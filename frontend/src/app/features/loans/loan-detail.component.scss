@@ -1,0 +1,39 @@
+.status-banner {
+  border-radius: var(--radius-ctl);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+
+  &.open {
+    background: var(--accent-light);
+    color: var(--navy-dark);
+    border-left: 3px solid var(--navy);
+  }
+
+  &.closed {
+    background: var(--surface-2);
+    color: var(--mid);
+    border-left: 3px solid var(--mid);
+  }
+
+  .sub {
+    margin-left: 8px;
+    font-size: 12px;
+  }
+}
+
+.return-panel {
+  border-left: 3px solid var(--navy);
+  margin-top: 16px;
+}
+
+.status-field {
+  width: 100%;
+  max-width: 280px;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 12px;
+}

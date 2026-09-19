@@ -1,0 +1,169 @@
+<div class="lt-breadcrumb">Items</div>
+
+<div class="lt-toolbar">
+  <h1>Items</h1>
+  <button
+    mat-flat-button
+    color="primary"
+    routerLink="/items/new"
+    aria-label="Add item"
+    data-testid="item-add-btn"
+  >
+    <mat-icon aria-hidden="true">add</mat-icon>
+    Add item
+  </button>
+</div>
+
+<div class="lt-card">
+  <div class="lt-toolbar-row">
+    <mat-form-field class="filter-search">
+      <mat-label>Search items</mat-label>
+      <input
+        matInput
+        type="search"
+        name="search"
+        placeholder="Search items…"
+        aria-label="Search items"
+        [ngModel]="search"
+        (ngModelChange)="onSearchInput($event)"
+        data-testid="item-list-search"
+      />
+    </mat-form-field>
+
+    <mat-form-field class="filter-select">
+      <mat-label>Category</mat-label>
+      <mat-select
+        name="categoryId"
+        aria-label="Filter by category"
+        [(ngModel)]="categoryId"
+        (selectionChange)="onFilterChange()"
+        data-testid="item-filter-category"
+      >
+        <mat-option value="">All categories</mat-option>
+        @for (category of categories(); track category.id) {
+          <mat-option [value]="category.id">{{ category.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="filter-select">
+      <mat-label>Availability</mat-label>
+      <mat-select
+        name="availability"
+        aria-label="Filter by availability"
+        [(ngModel)]="availability"
+        (selectionChange)="onFilterChange()"
+        data-testid="item-filter-availability"
+      >
+        <mat-option value="all">All items</mat-option>
+        <mat-option value="available">Available</mat-option>
+        <mat-option value="onloan">On loan</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton-rows [rows]="5" [columns]="5" />
+    <span class="lt-sr-only" role="status">Loading items</span>
+  } @else if (loadError()) {
+    <div class="lt-error-panel" role="alert" data-testid="item-list-error">
+      {{ loadError() }}
+    </div>
+    <button mat-stroked-button (click)="load()" data-testid="item-list-retry">Try again</button>
+  } @else if (items().length === 0 && hasActiveFilters) {
+    <app-empty-state
+      variant="no-results"
+      title="No results match your filters"
+      hint="Try a different search term, category or availability."
+      testId="item-list-empty-filtered"
+      (clearFilters)="clearFilters()"
+    />
+  } @else if (items().length === 0) {
+    <app-empty-state
+      variant="no-data"
+      title="No items yet"
+      hint="Add your first item to start tracking equipment loans."
+      [showClear]="false"
+      testId="item-list-empty"
+    />
+  } @else {
+    <table
+      mat-table
+      [dataSource]="items()"
+      class="lt-table"
+      matSort
+      [matSortActive]="sortBy()"
+      [matSortDirection]="sortDir()"
+      matSortDisableClear
+      (matSortChange)="onSortChange($event)"
+      data-testid="item-list-table"
+    >
+      <ng-container matColumnDef="assetTag">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Asset tag</th>
+        <td mat-cell *matCellDef="let row">{{ row.assetTag }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header scope="col">Name</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="itemCategoryName" scope="col">
+          Category
+        </th>
+        <td mat-cell *matCellDef="let row">{{ row.itemCategoryName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="availability">
+        <th mat-header-cell *matHeaderCellDef scope="col">Availability</th>
+        <td mat-cell *matCellDef="let row">
+          <span
+            class="lt-chip"
+            [class.lt-chip-onloan]="row.isOnLoan"
+            [class.lt-chip-available]="!row.isOnLoan"
+            data-testid="item-availability-chip"
+          >
+            {{ row.isOnLoan ? 'On loan' : 'Available' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="borrower">
+        <th mat-header-cell *matHeaderCellDef scope="col">Current borrower</th>
+        <td mat-cell *matCellDef="let row">{{ row.currentBorrowerName || '—' }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        class="item-row"
+        tabindex="0"
+        [attr.aria-label]="'Open item ' + row.name + ', asset tag ' + row.assetTag"
+        (click)="open(row)"
+        (keydown)="onRowKeydown($event, row)"
+        data-testid="item-list-row"
+      ></tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalCount()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPageChange($event)"
+      aria-label="Select page of items"
+      data-testid="item-list-paginator"
+    />
+
+    <div class="lt-table-footer" data-testid="item-list-footer">
+      Showing {{ items().length }} of {{ totalCount() }} items
+    </div>
+  }
+</div>
+
+<p class="lt-a11y-note">
+  Availability is derived from open-loan state, never a stored field. Row click opens item
+  detail; every row is also reachable by keyboard — Tab to the row, Enter to open.
+</p>

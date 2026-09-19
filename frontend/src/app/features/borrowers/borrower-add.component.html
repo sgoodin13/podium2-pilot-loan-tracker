@@ -1,0 +1,115 @@
+<div class="lt-breadcrumb">
+  <a routerLink="/borrowers">Borrowers</a> &gt; Add
+</div>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <div class="lt-toolbar">
+    <h1>Add borrower</h1>
+    <div class="lt-form-actions">
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="saving()"
+        (click)="cancel()"
+        data-testid="borrower-add-cancel"
+      >
+        Cancel
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="saving()"
+        data-testid="borrower-add-save"
+      >
+        {{ saving() ? 'Saving…' : 'Save' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="lt-card lt-form-card">
+    @if (saveError()) {
+      <div class="lt-error-panel" role="alert" data-testid="borrower-add-error">
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="lt-field">
+      <mat-form-field class="form-field">
+        <mat-label>Name</mat-label>
+        <input
+          #nameInput
+          matInput
+          type="text"
+          formControlName="name"
+          placeholder="Full name"
+          required
+          autocomplete="name"
+          data-testid="borrower-add-name"
+        />
+        @if (name.touched && name.hasError('required')) {
+          <mat-error>Name is required.</mat-error>
+        } @else if (name.hasError('maxlength')) {
+          <mat-error>Name must be 200 characters or fewer.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="lt-field">
+      <mat-form-field class="form-field">
+        <mat-label>Contact email</mat-label>
+        <input
+          #emailInput
+          matInput
+          type="email"
+          formControlName="contactEmail"
+          placeholder="name@example.org"
+          autocomplete="email"
+          data-testid="borrower-add-email"
+        />
+        @if (contactEmail.hasError('email')) {
+          <mat-error>Enter a valid email address, for example name&#64;example.org.</mat-error>
+        } @else if (contactEmail.hasError('maxlength')) {
+          <mat-error>Contact email must be 256 characters or fewer.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="lt-field">
+      <mat-form-field class="form-field">
+        <mat-label>Contact phone</mat-label>
+        <input
+          matInput
+          type="tel"
+          formControlName="contactPhone"
+          placeholder="Optional"
+          autocomplete="tel"
+          data-testid="borrower-add-phone"
+        />
+        @if (contactPhone.hasError('maxlength')) {
+          <mat-error>Contact phone must be 50 characters or fewer.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="lt-field">
+      <mat-form-field class="form-field">
+        <mat-label>Department / group</mat-label>
+        <input
+          matInput
+          type="text"
+          formControlName="department"
+          placeholder="Optional, free text"
+          data-testid="borrower-add-department"
+        />
+        @if (department.hasError('maxlength')) {
+          <mat-error>Department / group must be 200 characters or fewer.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </div>
+</form>
+
+<p class="lt-a11y-note">
+  Pattern 04 (Single record form). Only Name is required — contact fields are optional per the BRs.
+</p>

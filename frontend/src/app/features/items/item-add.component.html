@@ -1,0 +1,129 @@
+<div class="lt-breadcrumb">
+  <a routerLink="/items" data-testid="item-add-breadcrumb-items">Items</a>
+  <span aria-hidden="true">&gt;</span>
+  <span>Add</span>
+</div>
+
+<div class="lt-toolbar">
+  <h1>Add item</h1>
+  <div class="lt-form-actions">
+    <button mat-stroked-button type="button" (click)="cancel()" data-testid="item-add-cancel">
+      Cancel
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      form="item-add-form"
+      [disabled]="saving()"
+      data-testid="item-add-save"
+    >
+      {{ saving() ? 'Saving…' : 'Save' }}
+    </button>
+  </div>
+</div>
+
+<form
+  id="item-add-form"
+  class="lt-card lt-form-card"
+  [formGroup]="form"
+  (ngSubmit)="save()"
+  novalidate
+>
+  @if (formError()) {
+    <div class="lt-error-panel" role="alert" data-testid="item-add-error">{{ formError() }}</div>
+  }
+
+  <div class="lt-field">
+    <mat-form-field class="full-width">
+      <mat-label>Name <span class="req" aria-hidden="true">*</span></mat-label>
+      <input
+        matInput
+        formControlName="name"
+        type="text"
+        placeholder="e.g. Cordless Drill"
+        required
+        autocomplete="off"
+        [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+        data-testid="item-add-name"
+      />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Name is required.</mat-error>
+      } @else if (form.controls.name.hasError('maxlength')) {
+        <mat-error>Name must be 200 characters or fewer.</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="lt-field">
+    <mat-form-field class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea
+        matInput
+        formControlName="description"
+        rows="2"
+        placeholder="Optional notes"
+        data-testid="item-add-description"
+      ></textarea>
+      @if (form.controls.description.hasError('maxlength')) {
+        <mat-error>Description must be 1000 characters or fewer.</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="lt-field">
+    <mat-form-field class="full-width">
+      <mat-label>Asset tag / serial number <span class="req" aria-hidden="true">*</span></mat-label>
+      <input
+        matInput
+        formControlName="assetTag"
+        type="text"
+        placeholder="e.g. DRL-0116"
+        required
+        autocomplete="off"
+        [attr.aria-invalid]="form.controls.assetTag.touched && form.controls.assetTag.invalid"
+        data-testid="item-add-assettag"
+      />
+      <mat-hint>Must be unique — this is what the checkout confirmation names.</mat-hint>
+      @if (form.controls.assetTag.hasError('duplicate')) {
+        <mat-error data-testid="item-add-assettag-error">{{ assetTagServerError() }}</mat-error>
+      } @else if (form.controls.assetTag.hasError('required')) {
+        <mat-error>Asset tag is required.</mat-error>
+      } @else if (form.controls.assetTag.hasError('maxlength')) {
+        <mat-error>Asset tag must be 64 characters or fewer.</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="lt-field">
+    <mat-form-field class="full-width">
+      <mat-label>Category <span class="req" aria-hidden="true">*</span></mat-label>
+      <mat-select
+        formControlName="itemCategoryId"
+        required
+        panelClass="item-category-panel"
+        data-testid="item-add-category"
+      >
+        <mat-option value="">Select a category…</mat-option>
+        @for (category of categories(); track category.id) {
+          <mat-option [value]="category.id">{{ category.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.itemCategoryId.hasError('required')) {
+        <mat-error>Category is required.</mat-error>
+      }
+    </mat-form-field>
+    @if (categoriesError()) {
+      <div class="lt-error-panel" role="alert" data-testid="item-add-categories-error">
+        {{ categoriesError() }}
+      </div>
+    }
+  </div>
+
+  <p class="required-legend">Fields marked <span class="req">*</span> are required.</p>
+</form>
+
+<p class="lt-a11y-note">
+  Asset-tag uniqueness is validated server-side on save; a duplicate shows an inline error on
+  the field itself, never a silent failure.
+</p>

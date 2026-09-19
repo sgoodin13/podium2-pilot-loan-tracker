@@ -1,0 +1,424 @@
+// LoanTracker — global styles.
+//
+// Layout primitives ported from design/ui-spec/assets/mockups.css. Interactive
+// controls are Angular Material components (LoanTracker_UI_Standard.md §2 —
+// "Angular Material only, no secondary component kit"); these classes cover
+// shell, layout and the chip/state vocabulary the mockups define.
+
+@use './styles/theme';
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--page);
+}
+
+// --- Skip link -------------------------------------------------------------
+// WCAG 2.2 AA commitment recorded in design/ui-spec/patterns-applied.md: the
+// first focusable element on every screen.
+.lt-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  background: var(--navy);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 0 0 var(--radius-ctl) 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:focus {
+    left: 0;
+  }
+}
+
+// --- Shell -----------------------------------------------------------------
+.lt-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.lt-sidenav {
+  width: 220px;
+  flex: 0 0 220px;
+  background: var(--navy-dark);
+  padding: 0 0 20px;
+
+  .brand {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    margin-bottom: 8px;
+  }
+
+  a {
+    display: block;
+    padding: 10px 20px;
+    color: rgba(255, 255, 255, 0.82);
+    text-decoration: none;
+    font-size: 13.5px;
+    border-left: 3px solid transparent;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+    }
+
+    // Focus must be visible against the navy sidenav, where the light
+    // --accent-light ring used elsewhere would wash out.
+    &:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: -2px;
+    }
+
+    &.active {
+      background: rgba(255, 255, 255, 0.10);
+      color: #fff;
+      font-weight: 600;
+      border-left: 3px solid #fff;
+      padding-left: 17px;
+    }
+  }
+}
+
+.lt-main {
+  flex: 1;
+  padding: 24px 32px;
+  max-width: 1040px;
+  min-width: 0;
+}
+
+// --- Page furniture --------------------------------------------------------
+.lt-breadcrumb {
+  font-size: 12px;
+  color: var(--mid);
+  margin-bottom: 8px;
+}
+
+.lt-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+
+    .tag {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 14px;
+      margin-left: 8px;
+    }
+  }
+}
+
+.lt-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.lt-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+}
+
+// --- Detail grid (parent record attributes) --------------------------------
+.lt-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+
+  .k {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--mid);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+
+  .v {
+    font-size: 13px;
+  }
+}
+
+// --- Chips -----------------------------------------------------------------
+// Colour is never the sole signal (CLAUDE.md accessibility): every chip carries
+// its own text label, and the warning chip additionally carries an icon.
+.lt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.lt-chip-available { background: var(--chip-available-bg); color: var(--good); }
+.lt-chip-onloan    { background: var(--accent-light); color: var(--navy); }
+.lt-chip-terminal  { background: var(--surface-2); color: var(--mid); }
+.lt-chip-warn      { background: var(--chip-warn-bg); color: var(--chip-warn-ink); }
+.lt-chip-danger    { background: var(--danger-bg); color: var(--danger-dark); }
+
+// --- Guard banner ----------------------------------------------------------
+// The hard-block explanation for retire / deactivate (BR §8, SME-resolved).
+// Amber is a filled background with dark ink, never amber text on white —
+// LoanTracker_UI_Standard.md §1 records that pairing as a contrast failure.
+.lt-guard-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--chip-warn-bg);
+  border-left: 3px solid var(--fair);
+  color: var(--chip-warn-ink);
+  border-radius: var(--radius-ctl);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  margin-bottom: 16px;
+}
+
+// --- Inline error panel ----------------------------------------------------
+// Errors are inline at the point of action, never a top-of-page banner
+// (ui-spec.md line 13). The checkout rejection panel is the canonical example.
+.lt-error-panel {
+  background: var(--danger-bg);
+  color: var(--danger-dark);
+  border-radius: var(--radius-ctl);
+  padding: 10px 12px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+// --- Empty states ----------------------------------------------------------
+// Two distinct variants, never one generic message (Standards Guide C6).
+.lt-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 13px;
+
+  .lt-empty-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--mid);
+    margin-bottom: 4px;
+  }
+}
+
+// --- Skeleton loading ------------------------------------------------------
+// Skeleton rows on the three list screens; spinner elsewhere (C6, UI Standard §3).
+.lt-skeleton-row {
+  height: 40px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.lt-skeleton-bar {
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface-2) 25%, #eef1f5 37%, var(--surface-2) 63%);
+  background-size: 400% 100%;
+  animation: lt-shimmer 1.4s ease infinite;
+  flex: 1;
+  margin-right: 16px;
+}
+
+@keyframes lt-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lt-skeleton-bar { animation: none; }
+}
+
+.lt-spinner-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+// --- Tables ----------------------------------------------------------------
+table.lt-table {
+  width: 100%;
+
+  th.mat-mdc-header-cell {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--mid);
+    background: var(--surface-2);
+  }
+
+  td.mat-mdc-cell {
+    font-size: 13px;
+    color: var(--ink);
+  }
+}
+
+.lt-table-footer {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 8px 4px 0;
+}
+
+// --- Forms -----------------------------------------------------------------
+.lt-form-card {
+  max-width: 520px;
+}
+
+.lt-field {
+  display: block;
+  margin-bottom: 14px;
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+  }
+}
+
+.lt-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+// --- Wizard ----------------------------------------------------------------
+.lt-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.lt-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .lbl {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  &.done .dot { background: var(--navy); color: #fff; }
+  &.done .lbl { color: var(--navy); }
+
+  &.active .dot { background: var(--accent-light); color: var(--navy); border: 2px solid var(--navy); }
+  &.active .lbl { color: var(--navy); }
+
+  &.todo .dot { background: #fff; color: var(--muted); border: 1px solid var(--border); }
+  &.todo .lbl { color: var(--muted); }
+}
+
+.lt-connector {
+  height: 2px;
+  width: 40px;
+  background: var(--border);
+
+  &.done { background: var(--navy); }
+}
+
+.lt-wizard-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.lt-context-line {
+  font-size: 12.5px;
+  color: var(--mid);
+  margin-bottom: 12px;
+}
+
+// --- Utility ---------------------------------------------------------------
+.lt-spacer { flex: 1; }
+.lt-muted { color: var(--muted); }
+
+.lt-a11y-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 16px;
+  font-style: italic;
+}
+
+// Screen-reader-only text, for cases where a visible label would duplicate.
+.lt-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// --- Responsive ------------------------------------------------------------
+// Mobile viewport is a test-matrix floor (LoanTracker_Stack_Rules.md), so the
+// shell must not break below 600px even though mobile-specific design is a
+// stated BR §7 deferral.
+@media (max-width: 599px) {
+  .lt-shell { flex-direction: column; }
+
+  .lt-sidenav {
+    width: 100%;
+    flex: none;
+    display: flex;
+    flex-wrap: wrap;
+    padding-bottom: 8px;
+
+    .brand { width: 100%; padding: 14px 16px; margin-bottom: 4px; }
+    a { padding: 8px 14px; border-left: none; border-bottom: 3px solid transparent; }
+    a.active { border-left: none; border-bottom: 3px solid #fff; padding-left: 14px; }
+  }
+
+  .lt-main { padding: 16px; max-width: 100%; }
+  .lt-toolbar { flex-direction: column; align-items: flex-start; }
+}

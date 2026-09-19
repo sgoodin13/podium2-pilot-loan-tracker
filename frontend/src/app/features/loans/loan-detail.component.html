@@ -1,0 +1,140 @@
+@if (loading()) {
+  <div class="lt-spinner-wrap">
+    <mat-progress-spinner mode="indeterminate" diameter="40" />
+    <span class="lt-sr-only" role="status">Loading loan</span>
+  </div>
+} @else if (loadError()) {
+  <div class="lt-error-panel" role="alert" data-testid="loan-detail-error">{{ loadError() }}</div>
+  <a mat-stroked-button routerLink="/loans">Back to loans</a>
+} @else {
+  <!-- The `as` alias is only available on a leading @if, not on @else if, so the
+       loan block is nested rather than chained. -->
+  @if (loan(); as l) {
+  <div class="lt-breadcrumb">
+    Loans &gt; {{ l.itemName }} ({{ l.itemAssetTag }}) — {{ l.borrowerName }}
+  </div>
+
+  <div class="lt-toolbar">
+    <h1>Loan detail</h1>
+  </div>
+
+  <!-- Two-node status stepper: Checked Out → terminal. -->
+  <div class="lt-stepper" role="group" aria-label="Loan status">
+    <div class="lt-step done">
+      <div class="dot" aria-hidden="true">✓</div>
+      <div class="lbl">Checked Out</div>
+    </div>
+
+    <div class="lt-connector" [class.done]="!l.isOpen"></div>
+
+    <div class="lt-step" [class.done]="!l.isOpen" [class.todo]="l.isOpen">
+      <div class="dot" aria-hidden="true">{{ l.isOpen ? '?' : '✓' }}</div>
+      <div class="lbl">{{ l.isOpen ? 'Returned / Lost / Damaged' : l.loanStatusName }}</div>
+    </div>
+  </div>
+
+  <div class="lt-card">
+    <div class="lt-detail-grid">
+      <div>
+        <div class="k">Item</div>
+        <div class="v" data-testid="loan-detail-item">
+          {{ l.itemName }} ({{ l.itemAssetTag }})
+        </div>
+      </div>
+      <div>
+        <div class="k">Borrower</div>
+        <div class="v" data-testid="loan-detail-borrower">{{ l.borrowerName }}</div>
+      </div>
+      <div>
+        <div class="k">Checked out</div>
+        <div class="v">{{ l.checkedOutAt | date: 'yyyy-MM-dd HH:mm' }}</div>
+      </div>
+      @if (!l.isOpen) {
+        <div>
+          <div class="k">Returned at</div>
+          <div class="v" data-testid="loan-detail-returned-at">
+            {{ l.returnedAt | date: 'yyyy-MM-dd HH:mm' }}
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Status banner. Text carries the state; colour is never the sole signal. -->
+  <div
+    class="status-banner"
+    [class.open]="l.isOpen"
+    [class.closed]="!l.isOpen"
+    data-testid="loan-detail-status"
+  >
+    <strong>Status: {{ l.loanStatusName }}</strong>
+    <span class="sub">{{ l.isOpen ? 'not yet returned' : 'this loan is closed' }}</span>
+  </div>
+
+  @if (l.isOpen) {
+    @if (!returnPanelOpen()) {
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="openReturnPanel()"
+        data-testid="loan-return-open"
+      >
+        Return this item
+      </button>
+    }
+
+    @if (returnPanelOpen()) {
+      <div class="lt-card return-panel" data-testid="loan-return-panel">
+        <h3>Return this item</h3>
+
+        <mat-form-field class="status-field">
+          <mat-label>Resulting status *</mat-label>
+          <mat-select
+            [ngModel]="selectedStatusId()"
+            (ngModelChange)="selectedStatusId.set($event)"
+            required
+            aria-describedby="terminal-hint"
+            data-testid="loan-return-status"
+          >
+            <mat-option value="" disabled>Select a terminal status…</mat-option>
+            @for (status of terminalStatuses(); track status.id) {
+              <mat-option [value]="status.id">{{ status.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <p class="hint" id="terminal-hint">
+          Only terminal statuses (Is Terminal = true) appear here — a non-terminal status cannot
+          close a loan.
+        </p>
+
+        @if (returnError()) {
+          <div class="lt-error-panel" role="alert" data-testid="loan-return-error">
+            {{ returnError() }}
+          </div>
+        }
+
+        <div class="lt-form-actions">
+          <button mat-stroked-button [disabled]="submitting()" (click)="cancelReturn()">
+            Cancel
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            [disabled]="!selectedStatusId() || submitting()"
+            (click)="confirmReturn()"
+            data-testid="loan-return-confirm"
+          >
+            {{ submitting() ? 'Returning…' : 'Confirm return' }}
+          </button>
+        </div>
+      </div>
+    }
+  } @else {
+    <p class="lt-a11y-note" data-testid="loan-closed-note">
+      This loan was closed on {{ l.returnedAt | date: 'yyyy-MM-dd' }} with status
+      "{{ l.loanStatusName }}". The Return action is no longer available.
+    </p>
+  }
+  }
+}
