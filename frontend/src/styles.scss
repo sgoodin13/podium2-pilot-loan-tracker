@@ -122,7 +122,7 @@ body {
     margin: 0;
 
     .tag {
-      color: var(--muted);
+      color: var(--mid);
       font-weight: 400;
       font-size: 14px;
       margin-left: 8px;
@@ -187,7 +187,7 @@ body {
   line-height: 1.7;
 }
 
-.lt-chip-available { background: var(--chip-available-bg); color: var(--good); }
+.lt-chip-available { background: var(--chip-available-bg); color: var(--good-on-tint); }
 .lt-chip-onloan    { background: var(--accent-light); color: var(--navy); }
 .lt-chip-terminal  { background: var(--surface-2); color: var(--mid); }
 .lt-chip-warn      { background: var(--chip-warn-bg); color: var(--chip-warn-ink); }
@@ -227,7 +227,7 @@ body {
 .lt-empty {
   text-align: center;
   padding: 40px 20px;
-  color: var(--muted);
+  color: var(--mid);
   font-size: 13px;
 
   .lt-empty-title {
@@ -292,7 +292,7 @@ table.lt-table {
 
 .lt-table-footer {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--mid);
   padding: 8px 4px 0;
 }
 
@@ -307,7 +307,7 @@ table.lt-table {
 
   .hint {
     font-size: 11px;
-    color: var(--muted);
+    color: var(--mid);
   }
 }
 
@@ -352,8 +352,8 @@ table.lt-table {
   &.active .dot { background: var(--accent-light); color: var(--navy); border: 2px solid var(--navy); }
   &.active .lbl { color: var(--navy); }
 
-  &.todo .dot { background: #fff; color: var(--muted); border: 1px solid var(--border); }
-  &.todo .lbl { color: var(--muted); }
+  &.todo .dot { background: #fff; color: var(--mid); border: 1px solid var(--border); }
+  &.todo .lbl { color: var(--mid); }
 }
 
 .lt-connector {
@@ -378,11 +378,11 @@ table.lt-table {
 
 // --- Utility ---------------------------------------------------------------
 .lt-spacer { flex: 1; }
-.lt-muted { color: var(--muted); }
+.lt-muted { color: var(--mid); }
 
 .lt-a11y-note {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--mid);
   margin-top: 16px;
   font-style: italic;
 }
@@ -400,12 +400,57 @@ table.lt-table {
   border: 0;
 }
 
+// --- Snackbar --------------------------------------------------------------
+// Material's default action colour is the accent palette (#568bd7), which lands
+// at 3.65:1 on the snackbar's #333 surface (QA defect D6). White is 12.6:1.
+//
+// The colour is applied to the button's inner .mdc-button__label, so setting it
+// on the button alone does not win — the Material token and the label both need
+// to be addressed.
+.mat-mdc-snack-bar-container {
+  --mat-snack-bar-button-color: #ffffff;
+  --mdc-text-button-label-text-color: #ffffff;
+}
+
+.mat-mdc-snack-bar-action,
+.mat-mdc-snack-bar-action .mdc-button__label {
+  color: #ffffff;
+}
+
 // --- Responsive ------------------------------------------------------------
 // Mobile viewport is a test-matrix floor (LoanTracker_Stack_Rules.md), so the
 // shell must not break below 600px even though mobile-specific design is a
 // stated BR §7 deferral.
+//
+// WCAG 2.2 AA 1.4.10 (Reflow): no horizontal scrolling of the PAGE at 320 CSS px.
+// A wide data table is an allowed exception — it may scroll inside its own
+// container — but the page around it must not. QA measured a 197px page
+// overflow on /items (D7), which also made the wizard's step-2 Select buttons
+// untappable because neighbouring elements intercepted the pointer (D8).
+@media (max-width: 959px) {
+  // Give every table its own scroll container instead of letting it push the
+  // page wide. The table keeps its native display, so its ARIA structure and
+  // header associations survive.
+  .lt-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table.lt-table {
+    min-width: 560px;
+  }
+}
+
 @media (max-width: 599px) {
-  .lt-shell { flex-direction: column; }
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .lt-shell {
+    flex-direction: column;
+    min-width: 0;
+  }
 
   .lt-sidenav {
     width: 100%;
@@ -415,10 +460,63 @@ table.lt-table {
     padding-bottom: 8px;
 
     .brand { width: 100%; padding: 14px 16px; margin-bottom: 4px; }
-    a { padding: 8px 14px; border-left: none; border-bottom: 3px solid transparent; }
+    a { padding: 10px 14px; border-left: none; border-bottom: 3px solid transparent; }
     a.active { border-left: none; border-bottom: 3px solid #fff; padding-left: 14px; }
   }
 
-  .lt-main { padding: 16px; max-width: 100%; }
-  .lt-toolbar { flex-direction: column; align-items: flex-start; }
+  .lt-main {
+    padding: 16px;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .lt-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  // Filters stack and go full width rather than overflowing the row, which is
+  // what was intercepting pointer events over the table beneath it.
+  .lt-toolbar-row {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+
+    .mat-mdc-form-field {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  .lt-card {
+    padding: 16px 14px;
+  }
+
+  .lt-form-card {
+    max-width: 100%;
+  }
+
+  .lt-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  // Wizard navigation stacks so both controls stay reachable on a phone.
+  .lt-wizard-nav {
+    flex-direction: column-reverse;
+    gap: 8px;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .lt-stepper {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .lt-connector {
+    width: 20px;
+  }
 }

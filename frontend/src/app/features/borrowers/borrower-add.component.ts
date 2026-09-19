@@ -102,6 +102,11 @@ export class BorrowerAddComponent {
     this.borrowers.create(request).subscribe({
       next: (created: Borrower) => {
         this.saving.set(false);
+        // The work IS saved, so the form is no longer dirty. Without this the
+        // unsaved-changes guard blocks the navigation away from a form whose
+        // contents are already persisted, and pressing Save again writes a
+        // second row (QA defect D4 — reproduced a genuine duplicate).
+        this.form.markAsPristine();
         this.notifications.success(`Borrower saved — ${created.name}.`);
         void this.router.navigate(['/borrowers', created.id]);
       },

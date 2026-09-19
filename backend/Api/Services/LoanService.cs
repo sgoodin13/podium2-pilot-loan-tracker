@@ -97,7 +97,22 @@ public class LoanService(
         CheckoutRequest request,
         CancellationToken ct = default)
     {
-        var borrower = await borrowers.GetByIdAsync(request.BorrowerId, cancellationToken: ct)
+        // Model validation rejects a missing id with a 400 before reaching here;
+        // these guards keep the service safe when called directly (tests, future
+        // callers) rather than assuming the controller ran.
+        var borrowerId = request.BorrowerId
+            ?? throw DomainException.Unprocessable("A borrower is required.");
+        var itemId = request.ItemId
+            ?? throw DomainException.Unprocessable("An item is required.");
+
+        // includeInactive: true is deliberate. The default excludes soft-deleted
+        // rows, which would filter a deactivated borrower or retired item out one
+        // line before its guard and report "not found" instead of the real reason.
+        // QA found both guard branches were unreachable dead code without this (D2).
+        var borrower = await borrowers.GetByIdAsync(
+                borrowerId,
+                includeInactive: true,
+                cancellationToken: ct)
             ?? throw DomainException.NotFound("That borrower");
 
         if (!borrower.IsActive)
@@ -106,7 +121,10 @@ public class LoanService(
                 $"{borrower.Name} is deactivated and cannot borrow items.");
         }
 
-        var item = await items.GetByIdAsync(request.ItemId, cancellationToken: ct)
+        var item = await items.GetByIdAsync(
+                itemId,
+                includeInactive: true,
+                cancellationToken: ct)
             ?? throw DomainException.NotFound("That item");
 
         if (!item.IsActive)
@@ -183,7 +201,10 @@ public class LoanService(
                 "That loan is already closed and cannot be returned again.");
         }
 
-        var status = await statuses.GetByIdAsync(request.LoanStatusId, cancellationToken: ct)
+        var statusId = request.LoanStatusId
+            ?? throw DomainException.Unprocessable("A resulting status is required.");
+
+        var status = await statuses.GetByIdAsync(statusId, cancellationToken: ct)
             ?? throw DomainException.NotFound("That loan status");
 
         if (!status.IsTerminal)

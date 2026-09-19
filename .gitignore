@@ -27,3 +27,6 @@ blob-report/
 .idea/
 *.swp
 .DS_Store
+
+# Subagent build output (kept out of the locked bin/ path)
+.qa-out/

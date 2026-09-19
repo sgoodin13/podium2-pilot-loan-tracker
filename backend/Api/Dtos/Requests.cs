@@ -54,11 +54,15 @@ public record UpdateBorrowerRequest : CreateBorrowerRequest;
 /// </summary>
 public record CheckoutRequest
 {
+    // Nullable on purpose. [Required] on a non-nullable Guid can never fail —
+    // model binding supplies Guid.Empty and the attribute is satisfied, so an
+    // empty body reached the service and surfaced as a confusing 404 rather than
+    // a 400 (QA defect D1). Making it nullable lets [Required] do its job.
     [Required(ErrorMessage = "A borrower is required.")]
-    public Guid BorrowerId { get; init; }
+    public Guid? BorrowerId { get; init; }
 
     [Required(ErrorMessage = "An item is required.")]
-    public Guid ItemId { get; init; }
+    public Guid? ItemId { get; init; }
 }
 
 /// <summary>
@@ -67,8 +71,9 @@ public record CheckoutRequest
 /// </summary>
 public record ReturnLoanRequest
 {
+    /// <inheritdoc cref="CheckoutRequest.BorrowerId" path="//comment"/>
     [Required(ErrorMessage = "A resulting status is required.")]
-    public Guid LoanStatusId { get; init; }
+    public Guid? LoanStatusId { get; init; }
 }
 
 public record ItemCategoryRequest

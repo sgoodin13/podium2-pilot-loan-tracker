@@ -45,10 +45,11 @@ builder.Services
             };
             problem.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
 
-            return new BadRequestObjectResult(problem)
-            {
-                ContentTypes = { "application/problem+json" },
-            };
+            // Written explicitly rather than through content negotiation, so this
+            // path and the exception middleware emit the same media type
+            // (QA defect D3 — see ProblemJsonResult for why ContentTypes alone
+            // was not enough).
+            return new ProblemJsonResult(problem);
         };
     });
 

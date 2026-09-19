@@ -163,6 +163,35 @@ public class LoanRepository : ILoanRepository
         return counts.ToDictionary(c => c.BorrowerId, c => c.Count);
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyDictionary<Guid, OpenLoanHolder>> GetOpenLoanHoldersByItemAsync(
+        IEnumerable<Guid> itemIds,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = itemIds as IReadOnlyCollection<Guid> ?? itemIds.ToList();
+        if (ids.Count == 0)
+        {
+            return new Dictionary<Guid, OpenLoanHolder>();
+        }
+
+        // Projected rather than materialised as entities: the list only needs the
+        // holder's name and the loan id, and ux_loans_item_open guarantees at most
+        // one open loan per item, so there is nothing to disambiguate.
+        var holders = await _db.Loans.AsNoTracking()
+            .Where(l => l.IsActive && l.ReturnedAt == null && ids.Contains(l.ItemId))
+            .Select(l => new
+            {
+                l.ItemId,
+                l.Id,
+                BorrowerName = l.Borrower!.Name,
+            })
+            .ToListAsync(cancellationToken);
+
+        return holders.ToDictionary(
+            h => h.ItemId,
+            h => new OpenLoanHolder(h.Id, h.BorrowerName));
+    }
+
     public async Task AddAsync(Loan loan, CancellationToken cancellationToken = default) =>
         await _db.Loans.AddAsync(loan, cancellationToken);
 

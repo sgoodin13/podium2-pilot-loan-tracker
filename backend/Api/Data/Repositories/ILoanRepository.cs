@@ -58,6 +58,17 @@ public interface ILoanRepository
         IEnumerable<Guid> borrowerIds,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// For a page of items, who currently holds each one and under which loan.
+    /// </summary>
+    /// <remarks>
+    /// Drives the item list's "Current borrower" column in ONE query. Items with
+    /// no open loan are absent from the result.
+    /// </remarks>
+    Task<IReadOnlyDictionary<Guid, OpenLoanHolder>> GetOpenLoanHoldersByItemAsync(
+        IEnumerable<Guid> itemIds,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(Loan loan, CancellationToken cancellationToken = default);
 
     void Update(Loan loan);

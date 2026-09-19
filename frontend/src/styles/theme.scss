@@ -47,6 +47,22 @@
   --chip-available-bg: #e6f4ea;
   --chip-warn-bg: #fdf3e0;
   --chip-warn-ink: #8a5a0a;
+
+  // --- Contrast-corrected variants (QA defect D6) -------------------------
+  // LoanTracker_UI_Standard.md §1 checked each colour against WHITE. Three
+  // pairings this build actually uses were never in that table and fail AA:
+  //
+  //   --good on --chip-available-bg   4.15:1  (the "Available" chip)
+  //   #ffffff on --poor               4.37:1  (filled destructive button)
+  //   --muted on --page / --card      2.85:1 / 3.09:1
+  //
+  // The muted failure is not a new finding — the UI Standard already records
+  // #8a93a3 as a fail and restricts it to "decorative/disabled use, never body
+  // copy". Hint text, table footers and a11y notes are body copy, so they move
+  // to --mid. The other two get darker fill-only variants; the original tokens
+  // are unchanged for their checked on-white text use.
+  --good-on-tint: #1a7340; // 5.3:1 on --chip-available-bg
+  --danger-fill: #c93c3c; // 5.0:1 against white text
 }
 
 // ---------------------------------------------------------------------------
@@ -84,7 +100,7 @@ $lt-danger-palette: (
   200: #ec9c9c,
   300: #e47373,
   400: #dd5757,
-  500: #d64545,
+  500: #c93c3c, // darkened from #d64545 so white button text reaches 4.5:1 (D6)
   600: #c23c3c,
   700: #a83232,
   800: #791f1f,

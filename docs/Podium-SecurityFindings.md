@@ -53,3 +53,41 @@ for a ruling, not presented as a blocker.
 
 **Marker:** `live-owed` — statically verified from the advisory database only; not
 exercised against a running system.
+
+---
+
+## Scan 2 — full stack, end of build (Phase 6)
+
+Commands: `dotnet list package --vulnerable --include-transitive` (per project) ·
+`npm audit --omit=dev`
+
+### Backend
+
+| Project | Result |
+|---|---|
+| `Api` — **the shipped service** | **No vulnerable packages.** |
+| `Api.Tests` — test-only, never deployed | 3 high: `SSH.NET` 2023.0.0 ([GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284)), `System.Net.Http` 4.3.0 ([GHSA-7jgj-8wvc-jh57](https://github.com/advisories/GHSA-7jgj-8wvc-jh57)), `System.Text.RegularExpressions` 4.3.0 ([GHSA-cmhx-cq75-c4mj](https://github.com/advisories/GHSA-cmhx-cq75-c4mj)) |
+
+All three test findings are transitive dependencies of `Testcontainers.PostgreSql`
+3.10.0, which exists so BR-1 can be asserted against a **real** Postgres rather than
+EF Core InMemory — InMemory cannot honour a filtered unique index, so dropping
+Testcontainers would silently weaken the pilot's single most important test. These
+packages run only on a developer machine during `dotnet test` and are not part of any
+deployable artifact.
+
+**Recommendation:** accept for this pilot; revisit if Testcontainers is ever carried
+into a deployed context (it should not be).
+
+### Frontend
+
+**Re-check could not be completed.** The npm advisory endpoint returned
+`503 Service Unavailable — We are currently performing maintenance` at the time of the
+Phase 6 scan. Recorded as not-re-checked rather than reported as clean.
+
+The Phase 0 result stands as the last successful reading: 58 findings, of which the 1
+critical and 27 of the 28 highs are dev-toolchain transitives, and **one** high affects
+production code — the Angular 18 sanitization-bypass advisory in Scan 1 above, still
+open and still awaiting an Orchestrator ruling.
+
+**Markers:** `live-owed` on the Angular finding; `resolved-static` on the backend
+result — verified from the advisory database, not exercised live.

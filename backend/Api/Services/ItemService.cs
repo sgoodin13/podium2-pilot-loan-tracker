@@ -51,13 +51,19 @@ public class ItemService(
             sort: sort,
             cancellationToken: ct);
 
-        // One query for the whole page rather than one per row — the repository
-        // exposes this specifically to keep the derived-availability column off
-        // the N+1 path.
-        var onLoanIds = await loans.GetItemIdsWithOpenLoanAsync(rows.Select(i => i.Id), ct);
+        // One query for the whole page rather than one per row — this keeps both
+        // the derived-availability chip AND the "Current borrower" column off the
+        // N+1 path. QA found the column was always blank (D5) because the page
+        // projection dropped the holder; carrying it here fixes that without
+        // reintroducing a per-row read.
+        var holders = await loans.GetOpenLoanHoldersByItemAsync(rows.Select(i => i.Id), ct);
 
         return new PagedResult<ItemResponse>(
-            rows.Select(i => ItemResponse.From(i, onLoanIds.Contains(i.Id))).ToList(),
+            rows
+                .Select(i => holders.TryGetValue(i.Id, out var holder)
+                    ? ItemResponse.From(i, isOnLoan: true, holder.BorrowerName, holder.LoanId)
+                    : ItemResponse.From(i, isOnLoan: false, null, null))
+                .ToList(),
             total,
             page.SafePage,
             page.SafePageSize);
@@ -81,7 +87,8 @@ public class ItemService(
             onLoanOnly: false,
             cancellationToken: ct);
 
-        return rows.Select(i => ItemResponse.From(i, isOnLoan: false)).ToList();
+        // Every row here is available by definition, so there is no holder to name.
+        return rows.Select(i => ItemResponse.From(i, isOnLoan: false, null, null)).ToList();
     }
 
     public async Task<ItemResponse> GetAsync(Guid id, CancellationToken ct = default)

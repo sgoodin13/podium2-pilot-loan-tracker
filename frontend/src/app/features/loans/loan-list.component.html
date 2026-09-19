@@ -138,7 +138,6 @@
         *matRowDef="let row; columns: displayedColumns"
         class="clickable-row"
         tabindex="0"
-        role="button"
         [attr.aria-label]="'Open loan for ' + row.itemName + ' ' + row.itemAssetTag"
         (click)="open(row)"
         (keydown)="onRowKeydown($event, row)"

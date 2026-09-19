@@ -55,8 +55,15 @@ public record ItemResponse(
             openLoan?.Borrower?.Name,
             openLoan?.Id);
 
-    /// <summary>Projection for a page of items where only the open/closed fact is known.</summary>
-    public static ItemResponse From(Item item, bool isOnLoan) =>
+    /// <summary>
+    /// Projection for a page of items, where the holder comes from a single
+    /// page-wide lookup rather than a per-row read.
+    /// </summary>
+    public static ItemResponse From(
+        Item item,
+        bool isOnLoan,
+        string? currentBorrowerName,
+        Guid? currentLoanId) =>
         new(
             item.Id,
             item.Name,
@@ -66,8 +73,8 @@ public record ItemResponse(
             item.ItemCategory?.Name ?? string.Empty,
             item.IsActive,
             isOnLoan,
-            null,
-            null);
+            currentBorrowerName,
+            currentLoanId);
 }
 
 public record BorrowerResponse(
