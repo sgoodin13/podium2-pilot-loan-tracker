@@ -31,7 +31,7 @@
 
 <!-- ===================== STEP 1 — SELECT BORROWER (t1) ===================== -->
 @if (step() === 1) {
-  <div class="lt-card" data-testid="checkout-step-1">
+  <div class="lt-card" #stepPanel tabindex="-1" data-testid="checkout-step-1">
     <h3>Select borrower</h3>
 
     <div class="lt-toolbar-row">
@@ -105,7 +105,7 @@
 
 <!-- ===================== STEP 2 — SELECT ITEM (t2) ========================= -->
 @if (step() === 2) {
-  <div class="lt-card" data-testid="checkout-step-2">
+  <div class="lt-card" #stepPanel tabindex="-1" data-testid="checkout-step-2">
     <div class="lt-context-line">
       Borrower selected: <strong>{{ selectedBorrower()?.name }}</strong> · Step 2 of 3
     </div>
@@ -214,7 +214,7 @@
 
 <!-- ===================== STEP 3 — CONFIRM (t3) / REJECT (t4) =============== -->
 @if (step() === 3) {
-  <div class="lt-card" data-testid="checkout-step-3">
+  <div class="lt-card" #stepPanel tabindex="-1" data-testid="checkout-step-3">
     <h3>Confirm checkout</h3>
 
     <!-- The confirmation names the specific item instance by asset tag, never

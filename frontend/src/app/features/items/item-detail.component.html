@@ -123,6 +123,7 @@
               autocomplete="off"
               [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
               data-testid="item-edit-name"
+              #editNameInput
             />
             @if (form.controls.name.hasError('required')) {
               <mat-error>Name is required.</mat-error>

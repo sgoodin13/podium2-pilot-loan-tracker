@@ -74,6 +74,7 @@
   @if (l.isOpen) {
     @if (!returnPanelOpen()) {
       <button
+        #returnTrigger
         mat-flat-button
         color="primary"
         (click)="openReturnPanel()"
@@ -85,7 +86,21 @@
 
     @if (returnPanelOpen()) {
       <div class="lt-card return-panel" data-testid="loan-return-panel">
-        <h3>Return this item</h3>
+        <!--
+          Names the specific item instance and states that the action cannot be
+          undone. Return is the product's one genuinely irreversible action —
+          there is no reopen endpoint — so its confirmation should be at least as
+          specific as the reversible retire/deactivate ones (Compliance finding F8).
+          tabindex="-1" makes it a focus target without adding it to the Tab order.
+        -->
+        <h3 #returnPanelHeading tabindex="-1" data-testid="loan-return-heading">
+          Return {{ l.itemName }} ({{ l.itemAssetTag }})?
+        </h3>
+
+        <p class="lt-a11y-note" data-testid="loan-return-irreversible">
+          This closes the loan for {{ l.borrowerName }} and cannot be undone — a closed loan
+          cannot be reopened. The item becomes available for checkout again.
+        </p>
 
         <mat-form-field class="status-field">
           <mat-label>Resulting status *</mat-label>

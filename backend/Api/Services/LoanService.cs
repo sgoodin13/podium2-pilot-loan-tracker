@@ -167,11 +167,13 @@ public class LoanService(
                 + "Nothing was saved. Pick a different item to continue.");
         }
 
+        // Borrower is identified by id only — never by name. CLAUDE.md §Logging
+        // forbids PII in log output, and the id resolves to the name for anyone
+        // with legitimate access to the data (Compliance finding F7).
         logger.LogInformation(
-            "Item checked out: {AssetTag} ({ItemId}) to {BorrowerName} ({BorrowerId}), loan {LoanId}",
+            "Item checked out: {AssetTag} ({ItemId}) to borrower {BorrowerId}, loan {LoanId}",
             item.AssetTag,
             item.Id,
-            borrower.Name,
             borrower.Id,
             loan.Id);
 

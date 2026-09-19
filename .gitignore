@@ -30,3 +30,6 @@ blob-report/
 
 # Subagent build output (kept out of the locked bin/ path)
 .qa-out/
+
+# Local credentials (see .env.example)
+.env

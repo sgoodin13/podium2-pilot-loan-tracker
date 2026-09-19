@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -12,6 +13,7 @@ import { ItemCategory, ProblemDetails } from '../../core/models/api.models';
 import { NotificationService } from '../../core/services/notification.service';
 import { ReferenceDataService } from '../../core/services/reference-data.service';
 import { EmptyStateComponent } from '../../shared/empty-state.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/confirm-dialog.component';
 
 interface EditableCategory extends ItemCategory {
   /** True while this row is in inline-edit mode. */
@@ -50,6 +52,7 @@ interface EditableCategory extends ItemCategory {
 export class ItemCategoryComponent implements OnInit {
   private readonly referenceData = inject(ReferenceDataService);
   private readonly notifications = inject(NotificationService);
+  private readonly dialog = inject(MatDialog);
 
   readonly rows = signal<EditableCategory[]>([]);
   readonly loading = signal(true);
@@ -85,6 +88,8 @@ export class ItemCategoryComponent implements OnInit {
         name: '',
         description: null,
         isActive: true,
+        // A row that does not exist yet cannot be referenced by anything.
+        activeItemCount: 0,
         editing: true,
         isNew: true,
         draft: { name: '', description: '', isActive: true },
@@ -121,6 +126,43 @@ export class ItemCategoryComponent implements OnInit {
       return;
     }
 
+    // Deactivating a category that active items still reference is allowed, but
+    // it is not silent: the effect is named and confirmed before the save, per
+    // Standards Guide C3 (Compliance finding F5). The backend already knew this
+    // count — it used to only write it to a log the user never sees.
+    const deactivating = !row.isNew && row.isActive && !row.draft.isActive;
+
+    if (deactivating && row.activeItemCount > 0) {
+      const items = row.activeItemCount === 1 ? '1 active item' : `${row.activeItemCount} active items`;
+
+      const data: ConfirmDialogData = {
+        tier: 2,
+        title: `Deactivate ${row.name}?`,
+        message:
+          `${items} still reference this category. They keep it and are not changed, `
+          + 'but the category stops being offered when adding or editing an item.',
+        confirmLabel: 'Deactivate category',
+        cancelLabel: 'Keep active',
+        destructive: true,
+        testId: 'category-deactivate',
+      };
+
+      this.dialog
+        .open(ConfirmDialogComponent, { data, autoFocus: 'dialog', restoreFocus: true })
+        .afterClosed()
+        .subscribe((confirmed) => {
+          if (confirmed === true) {
+            this.commit(row, name);
+          }
+        });
+
+      return;
+    }
+
+    this.commit(row, name);
+  }
+
+  private commit(row: EditableCategory, name: string): void {
     row.saving = true;
     row.error = undefined;
     this.rows.update((rows) => [...rows]);

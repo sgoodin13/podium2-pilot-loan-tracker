@@ -1,5 +1,6 @@
 using Api.Data.Entities;
 using Api.Data.Repositories;
+using Api.Data.Seed;
 using Api.Dtos;
 
 namespace Api.Services;
@@ -43,7 +44,13 @@ public class ItemCategoryService(
             includeInactive: includeInactive,
             cancellationToken: ct);
 
-        return rows.Select(ItemCategoryResponse.From).ToList();
+        // One batched count for the page — the UI needs it to name the effect of
+        // deactivating a category before the save (Compliance finding F5).
+        var counts = await categories.GetActiveItemCountsAsync(rows.Select(c => c.Id), ct);
+
+        return rows
+            .Select(c => ItemCategoryResponse.From(c, counts.TryGetValue(c.Id, out var n) ? n : 0))
+            .ToList();
     }
 
     public async Task<ItemCategoryResponse> CreateAsync(
@@ -195,6 +202,8 @@ public class LoanStatusService(
             throw DomainException.Conflict($"A loan status named '{name}' already exists.");
         }
 
+        await GuardReferencedStatusAsync(status, request, name, ct);
+
         status.Name = name;
         status.Description = request.Description?.Trim();
         status.IsTerminal = request.IsTerminal;
@@ -204,6 +213,77 @@ public class LoanStatusService(
         await statuses.SaveChangesAsync(ct);
 
         return LoanStatusResponse.From(status);
+    }
+
+    /// <summary>
+    /// Refuses the reference-data edits that would disable checkout or return
+    /// product-wide (Compliance finding F2).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="LoanService"/> resolves the open-loan status by name, and
+    /// <c>GetByNameAsync</c> only returns active rows — so renaming or deactivating
+    /// "Checked Out" silently breaks every checkout, and the error the user would
+    /// then see misdirects them to reference-data seeding. Likewise, deactivating the
+    /// last terminal status empties the return dropdown and leaves every open loan
+    /// permanently uncloseable, which in turn leaves its item permanently blocked
+    /// from retire by the hard guard.
+    /// </para>
+    /// <para>
+    /// The checkout status is matched on its stable seeded id rather than its
+    /// display name, so the guard does not itself depend on the editable field.
+    /// </para>
+    /// </remarks>
+    private async Task GuardReferencedStatusAsync(
+        LoanStatus status,
+        LoanStatusRequest request,
+        string newName,
+        CancellationToken ct)
+    {
+        var isCheckoutStatus = status.Id == SeedData.StatusIds.CheckedOut;
+
+        if (isCheckoutStatus)
+        {
+            if (!string.Equals(status.Name, newName, StringComparison.Ordinal))
+            {
+                throw DomainException.Unprocessable(
+                    $"'{status.Name}' is the status the checkout process assigns, so it cannot be "
+                    + "renamed. Renaming it would stop every checkout in the product.");
+            }
+
+            if (!request.IsActive)
+            {
+                throw DomainException.Unprocessable(
+                    $"'{status.Name}' is the status the checkout process assigns, so it cannot be "
+                    + "deactivated. Deactivating it would stop every checkout in the product.");
+            }
+
+            if (request.IsTerminal)
+            {
+                throw DomainException.Unprocessable(
+                    $"'{status.Name}' marks a loan as open, so it cannot be marked terminal.");
+            }
+        }
+
+        var beingDeactivated = status.IsActive && !request.IsActive;
+
+        if (beingDeactivated && await statuses.HasOpenLoansAsync(status.Id, ct))
+        {
+            throw DomainException.Unprocessable(
+                $"'{status.Name}' is the current status of at least one open loan, so it cannot be "
+                + "deactivated. Close those loans first.");
+        }
+
+        // Losing the last terminal status leaves no way to close a loan at all.
+        var losingTerminal = status.IsActive && status.IsTerminal
+            && (!request.IsTerminal || !request.IsActive);
+
+        if (losingTerminal && await statuses.CountOtherActiveTerminalAsync(status.Id, ct) == 0)
+        {
+            throw DomainException.Unprocessable(
+                $"'{status.Name}' is the only status that can close a loan. Add or reactivate "
+                + "another terminal status before changing this one.");
+        }
     }
 
     private static string Normalize(string value)

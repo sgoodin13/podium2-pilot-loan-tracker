@@ -33,11 +33,25 @@ public class ExceptionHandlingMiddleware(
         {
             // An expected business-rule violation. Warning, not Error — it is a
             // handled condition, and the blocked-checkout path is a normal outcome.
+            //
+            // The Detail is deliberately NOT logged at Warning: service code builds
+            // it from entity names for the user's benefit ("Dana Whitfield is
+            // deactivated and cannot borrow items"), which would put borrower PII
+            // into the log through a second, less obvious path than the direct one
+            // (CLAUDE.md §Logging; Compliance finding F7). Title plus the route is
+            // enough to diagnose from logs alone; Detail is available at Debug for
+            // a developer who has deliberately turned it on.
             logger.LogWarning(
-                "Business rule rejected {Method} {Path}: {Title} — {Detail}",
+                "Business rule rejected {Method} {Path}: {Title} ({StatusCode})",
                 context.Request.Method,
                 context.Request.Path,
                 ex.Title,
+                ex.StatusCode);
+
+            logger.LogDebug(
+                "Rejection detail for {Method} {Path}: {Detail}",
+                context.Request.Method,
+                context.Request.Path,
                 ex.Detail);
 
             await WriteProblemAsync(context, ex.StatusCode, ex.Title, ex.Detail);

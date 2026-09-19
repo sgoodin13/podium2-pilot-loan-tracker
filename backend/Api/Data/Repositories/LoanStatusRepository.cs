@@ -21,6 +21,18 @@ public class LoanStatusRepository : ILoanStatusRepository
         return query.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
+    public Task<bool> HasOpenLoansAsync(Guid statusId, CancellationToken cancellationToken = default) =>
+        _db.Loans.AsNoTracking()
+            .AnyAsync(
+                l => l.IsActive && l.ReturnedAt == null && l.LoanStatusId == statusId,
+                cancellationToken);
+
+    public Task<int> CountOtherActiveTerminalAsync(Guid excludeId, CancellationToken cancellationToken = default) =>
+        _db.LoanStatuses.AsNoTracking()
+            .CountAsync(
+                s => s.IsActive && s.IsTerminal && s.Id != excludeId,
+                cancellationToken);
+
     public Task<LoanStatus?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         var term = name.Trim();

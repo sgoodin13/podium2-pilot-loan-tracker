@@ -10,8 +10,11 @@ services:
     image: postgres:17-alpine
     container_name: loantracker-postgres
     environment:
-      POSTGRES_USER: loantracker
-      POSTGRES_PASSWORD: loantracker_dev
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env — copy .env.example}
+      # No default, deliberately: a committed default is still a committed credential
+      # (Compliance finding F3). Compose fails fast with the message above if .env is
+      # missing, rather than silently standing up a database with a known password.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env — copy .env.example}
       # The run-scoped database (loantracker_dev_<branch>) is created by the bootstrap
       # script, not here — this is only the always-present maintenance database.
       POSTGRES_DB: postgres
@@ -20,7 +23,7 @@ services:
     volumes:
       - loantracker-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U loantracker -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 10

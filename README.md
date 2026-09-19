@@ -24,7 +24,25 @@ three aggregates do not need them.
 
 ## Running it locally
 
-Three terminals. Ports are committed configuration, not conventions.
+Three terminals, after a one-time credential step. Ports are committed configuration,
+not conventions.
+
+### 0. Local credentials — once per machine
+
+No credential is committed to this repository, including throwaway local ones
+(`LoanTracker_Stack_Rules.md` §STACK_RULES makes no exception for them). So set yours
+up first:
+
+```bash
+cp .env.example .env          # then pick a password in .env — it is gitignored
+
+cd backend/Api
+dotnet user-secrets set "ConnectionStrings:LoanTracker" \
+  "Host=localhost;Port=5433;Database=loantracker_dev_20260919_pilot;Username=loantracker;Password=<the password from .env>"
+```
+
+Both steps fail loudly rather than silently if you skip them: `docker compose` refuses
+to start without `.env`, and the API throws a named error on boot without the secret.
 
 ### 1. Database
 
@@ -33,7 +51,7 @@ docker compose up -d
 ```
 
 Postgres 17 on **host port 5433** (not 5432, so it cannot collide with an existing
-local install).
+local install). Credentials come from your `.env`.
 
 ### 2. API — http://localhost:5080
 
@@ -136,3 +154,8 @@ requirements/        the requirement hierarchy this build realizes
 There is none. A stub middleware treats every request as an authenticated Staff user —
 a deliberate, approved scope decision for this pilot, not an oversight. **This build is
 safe on Local only.** Promoting it anywhere else means replacing that middleware first.
+
+That is enforced, not just documented: `UseStubAuthentication` **throws on startup** if
+the host environment is anything other than Development, and logs a warning on every
+Development boot. The application fails to start rather than quietly serving every
+anonymous caller as Staff.

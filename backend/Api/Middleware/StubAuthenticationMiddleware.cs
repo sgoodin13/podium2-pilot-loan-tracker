@@ -46,6 +46,43 @@ public class StubAuthenticationMiddleware(RequestDelegate next)
 /// <summary>Registration helper for <see cref="StubAuthenticationMiddleware"/>.</summary>
 public static class StubAuthenticationMiddlewareExtensions
 {
+    /// <summary>
+    /// Registers the stub, and refuses to start outside Development.
+    /// </summary>
+    /// <remarks>
+    /// The middleware's remarks say promoting this build beyond Local would be a
+    /// genuine vulnerability. This is the code that makes that true rather than
+    /// merely stated: outside Development the application fails to boot instead of
+    /// serving every anonymous caller as Staff (Compliance finding F1).
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the host environment is anything other than Development.
+    /// </exception>
     public static IApplicationBuilder UseStubAuthentication(this IApplicationBuilder app)
-        => app.UseMiddleware<StubAuthenticationMiddleware>();
+    {
+        var environment = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
+
+        if (!environment.IsDevelopment())
+        {
+            throw new InvalidOperationException(
+                "Stub authentication is Development-only: it treats every request as an "
+                + $"authenticated {StubAuthenticationMiddleware.StaffRole} user with full access. "
+                + $"The host environment is '{environment.EnvironmentName}'. Replace this middleware "
+                + "with real authentication before running anywhere but Local "
+                + "(trigger spec §4 [RULING: auth]).");
+        }
+
+        // Loud on every Development boot, so the deferral is visible at runtime and
+        // not only in a code comment.
+        app.ApplicationServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger<StubAuthenticationMiddleware>()
+            .LogWarning(
+                "Stub authentication is ENABLED — every request is treated as an authenticated "
+                + "{Role} user with no credential check. Development only; never promote this build "
+                + "beyond Local without replacing it.",
+                StubAuthenticationMiddleware.StaffRole);
+
+        return app.UseMiddleware<StubAuthenticationMiddleware>();
+    }
 }

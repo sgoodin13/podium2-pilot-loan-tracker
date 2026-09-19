@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -142,17 +142,38 @@ export class CheckoutWizardComponent implements OnInit {
 
   // --- Navigation ----------------------------------------------------------
 
+  /**
+   * The panel that is currently rendered. Only one of the three `@if (step() === N)`
+   * branches exists at a time, so this resolves to the live one.
+   */
+  @ViewChild('stepPanel') private stepPanel?: ElementRef<HTMLElement>;
+
+  /**
+   * Every step transition swaps the whole card, which removes the button that had
+   * focus and drops focus to `<body>` — leaving a keyboard user to Tab from the top
+   * of the document on each of the three steps (Compliance finding F6).
+   *
+   * The panel carries `tabindex="-1"` so it can receive focus without joining the Tab
+   * order. The existing `role="status"` "Step N of 3" announcer covers the
+   * announcement; this covers the focus half that CLAUDE.md §Accessibility requires.
+   */
+  private focusCurrentStep(): void {
+    queueMicrotask(() => this.stepPanel?.nativeElement.focus());
+  }
+
   next(): void {
     this.rejection.set(null);
 
     if (this.step() === 1 && this.canAdvanceFromBorrower()) {
       this.step.set(2);
       this.loadItems();
+      this.focusCurrentStep();
       return;
     }
 
     if (this.step() === 2 && this.canAdvanceFromItem()) {
       this.step.set(3);
+      this.focusCurrentStep();
     }
   }
 
@@ -161,11 +182,13 @@ export class CheckoutWizardComponent implements OnInit {
 
     if (this.step() === 3) {
       this.step.set(2);
+      this.focusCurrentStep();
       return;
     }
 
     if (this.step() === 2) {
       this.step.set(1);
+      this.focusCurrentStep();
     }
   }
 
@@ -176,6 +199,7 @@ export class CheckoutWizardComponent implements OnInit {
     this.step.set(2);
     // Refetch: the item that was taken should no longer appear as available.
     this.loadItems();
+    this.focusCurrentStep();
   }
 
   // --- Step 3: commit ------------------------------------------------------
@@ -229,5 +253,6 @@ export class CheckoutWizardComponent implements OnInit {
     this.borrowerSearch.set('');
     this.itemSearch.set('');
     this.loadBorrowers();
+    this.focusCurrentStep();
   }
 }

@@ -8,25 +8,31 @@ namespace Api.Data;
 /// the web host or reaching a live database.
 /// </summary>
 /// <remarks>
-/// The connection string below is a design-time placeholder only — migrations are GENERATED,
-/// never applied, and the scaffolding process never opens this connection. The runtime
-/// connection string comes from configuration via
-/// <see cref="DataServiceCollectionExtensions.AddLoanTrackerData"/>.
 /// <para>
-/// Set <c>LOANTRACKER_DESIGNTIME_CONNECTION</c> to override it locally.
+/// The connection is never opened — migrations are GENERATED, never applied, and scaffolding
+/// only needs the provider to shape the SQL. The runtime connection string comes from
+/// configuration via <see cref="DataServiceCollectionExtensions.AddLoanTrackerData"/>.
 /// </para>
-/// <para>No secret here: these are the local Docker Compose development credentials.</para>
+/// <para>
+/// Set <c>LOANTRACKER_DESIGNTIME_CONNECTION</c> before running <c>dotnet ef</c>. There is
+/// deliberately no hardcoded fallback: the previous one embedded working local credentials in
+/// C# source for no benefit, since this override already existed (Compliance finding F3).
+/// </para>
 /// </remarks>
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
-    private const string PlaceholderConnectionString =
-        "Host=localhost;Port=5433;Database=loantracker_design;Username=loantracker;Password=loantracker_dev";
+    private const string ConnectionVariable = "LOANTRACKER_DESIGNTIME_CONNECTION";
 
     public AppDbContext CreateDbContext(string[] args)
     {
         var connectionString =
-            Environment.GetEnvironmentVariable("LOANTRACKER_DESIGNTIME_CONNECTION")
-            ?? PlaceholderConnectionString;
+            Environment.GetEnvironmentVariable(ConnectionVariable)
+            ?? throw new InvalidOperationException(
+                $"{ConnectionVariable} is not set. `dotnet ef` needs a connection string to "
+                + "shape the migration, though it never opens the connection. Set it for the "
+                + "current shell, for example:\n\n"
+                + $"  $env:{ConnectionVariable} = "
+                + "\"Host=localhost;Port=5433;Database=loantracker_design;Username=loantracker;Password=<from .env>\"");
 
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(connectionString)

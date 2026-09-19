@@ -23,6 +23,18 @@ public interface ILoanStatusRepository
 
     Task<bool> NameExistsAsync(string name, Guid? excludeId = null, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// True when this status is the current status of at least one open loan.
+    /// Deactivating such a status would strand those loans (Compliance finding F2).
+    /// </summary>
+    Task<bool> HasOpenLoansAsync(Guid statusId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Count of active terminal statuses other than <paramref name="excludeId"/> — used to
+    /// refuse the edit that would leave no way to close a loan.
+    /// </summary>
+    Task<int> CountOtherActiveTerminalAsync(Guid excludeId, CancellationToken cancellationToken = default);
+
     Task AddAsync(LoanStatus status, CancellationToken cancellationToken = default);
 
     void Update(LoanStatus status);

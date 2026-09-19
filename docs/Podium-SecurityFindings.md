@@ -28,8 +28,12 @@ developer machine.
 |---|---|---|---|
 | [GHSA-hh8m-fm6v-7cvg](https://github.com/advisories/GHSA-hh8m-fm6v-7cvg) — Angular sanitization bypass via directive host bindings on concrete host elements | `@angular/core`, `@angular/compiler` (and `@angular/animations` transitively) | high | Present in **every** Angular 18 release |
 
-`npm audit --omit=dev` reports 10 vulnerabilities (7 moderate, 3 high), all tracing to
-this single advisory.
+`npm audit --omit=dev` reports 10 vulnerabilities (7 moderate, 3 high).
+
+> **Corrected at Scan 3.** The original wording here said those 10 were *"all tracing to
+> this single advisory."* That was wrong — they trace to a family of advisories, of which
+> `GHSA-hh8m-fm6v-7cvg` is one. See Scan 3 below for the full list and for the exposure
+> evidence that replaces it.
 
 ### Why Developer cannot resolve this
 
@@ -91,3 +95,93 @@ open and still awaiting an Orchestrator ruling.
 
 **Markers:** `live-owed` on the Angular finding; `resolved-static` on the backend
 result — verified from the advisory database, not exercised live.
+
+---
+
+## Orchestrator ruling — Gate 4 (2026-09-19)
+
+**Angular 18 sanitization-bypass advisory ([GHSA-hh8m-fm6v-7cvg](https://github.com/advisories/GHSA-hh8m-fm6v-7cvg)) — Tier 2, ordinary.**
+
+Ruled by the Orchestrator at Gate 4 under the two-tier severity rule (CLAUDE.md §Gates).
+Rationale as given: `domain_amplification_criteria` is `N/A — low-stakes` for this
+product, and practical exposure is low — Local-only, with no untrusted input reaching
+the sanitizer.
+
+**Disposition:** logged, tracked informally, **no further action on this build.** The
+stack stays on Angular 18 as the Gate 1 architecture approved; the advisory is not a
+blocker and does not reopen the architecture.
+
+The `live-owed` marker recorded in Scan 1 **stands**. Tiering a finding does not
+discharge that marker — the advisory was verified statically from the advisory database
+only, never exercised against a running system.
+
+**Other Gate 4 dispositions, for the record:**
+
+| Item | Ruling |
+|---|---|
+| `Api.Tests` transitive highs (`SSH.NET`, `System.Net.Http`, `System.Text.RegularExpressions` via `Testcontainers.PostgreSql`) | Accepted — test-only, never deployed. Revisit only if Testcontainers is ever carried into a deployed context. |
+| Frontend re-check incomplete (npm advisory endpoint `503` during Phase 6) | Acknowledged — "not re-checked" is the correct honest record. No action required; retry opportunistically. **Retried successfully at Scan 3 below.** |
+
+---
+
+## Scan 3 — Compliance/Security pass, post-Gate-4 (2026-09-19)
+
+Run independently by Compliance/Security Engineer and then re-verified directly, because
+a scan result relayed from a subagent is a claim rather than evidence.
+
+### Frontend — the re-check that 503'd in Phase 6 now completes
+
+`npm audit --omit=dev` returns **10 vulnerabilities (7 moderate, 3 high)** — the same
+count Scan 1 recorded. The **count** was right; the **attribution** was not.
+
+They do not all trace to `GHSA-hh8m-fm6v-7cvg`. `@angular/core` carries eight distinct
+advisories and `@angular/compiler` several, all fixed only in `@angular/core@22.1.7`:
+
+| Advisory | Summary |
+|---|---|
+| [GHSA-hh8m-fm6v-7cvg](https://github.com/advisories/GHSA-hh8m-fm6v-7cvg) | Sanitization bypass via directive host bindings on concrete host elements |
+| [GHSA-prjf-86w9-mfqv](https://github.com/advisories/GHSA-prjf-86w9-mfqv) | Angular i18n XSS |
+| [GHSA-g93w-mfhg-p222](https://github.com/advisories/GHSA-g93w-mfhg-p222) | XSS in i18n attribute bindings |
+| [GHSA-jj27-h5hq-8x99](https://github.com/advisories/GHSA-jj27-h5hq-8x99) | i18n XSS via event-handler attributes |
+| [GHSA-jrmj-c5cx-3cw6](https://github.com/advisories/GHSA-jrmj-c5cx-3cw6) | XSS via unsanitized SVG script attributes |
+| [GHSA-v4hv-rgfq-gp49](https://github.com/advisories/GHSA-v4hv-rgfq-gp49) | Stored XSS via SVG animation / SVG URL / MathML attributes |
+| [GHSA-f3m7-gqxr-g87x](https://github.com/advisories/GHSA-f3m7-gqxr-g87x) | Template and attribute namespace sanitization bypass |
+| [GHSA-692r-grfm-v8x7](https://github.com/advisories/GHSA-692r-grfm-v8x7) | Template and dynamic-component namespace bypass |
+| [GHSA-rgjc-h3x7-9mwg](https://github.com/advisories/GHSA-rgjc-h3x7-9mwg) | Client hydration DOM clobbering & response-cache poisoning |
+| [GHSA-58w9-8g37-x9v5](https://github.com/advisories/GHSA-58w9-8g37-x9v5) | `@angular/compiler` two-way property binding sanitization bypass |
+
+**Why this matters to the Gate 4 ruling.** That ruling reasoned from a narrow exposure
+argument — *"requires attacker-controlled input reaching a directive host binding."* That
+is accurate for the one advisory it named and does not describe the other nine. The
+conclusion still holds, but it needs to rest on evidence that covers the whole family.
+
+### The exposure evidence that actually supports Tier 2
+
+Verified directly against `frontend/src`, not inferred:
+
+| Check | Result | What it rules out |
+|---|---|---|
+| `innerHTML`, `bypassSecurityTrust*`, `DomSanitizer`, `eval(` | **0 occurrences** | The application never opts out of Angular's default escaping — the precondition most of these advisories need |
+| `$localize`, `i18n=` | **0 occurrences** | Removes the three i18n-family advisories from the reachable set (see also the C4 finding — i18n is not implemented) |
+| `<svg>`, `<math>` authored in templates | **0 files** | Removes the two SVG/MathML advisories |
+| SSR / hydration | not in use | Removes the hydration DOM-clobbering advisory |
+
+Combined with Local-only scope and no untrusted input source, **Tier 2 remains the right
+call** — now on grounds that cover all ten advisories rather than one.
+
+**Marker:** `live-owed` still stands. Every line above is static verification against the
+advisory database and the source tree; none of it was exercised against a running system.
+
+### Backend — re-verified, and one claimed finding did not reproduce
+
+`dotnet list package --vulnerable --include-transitive` re-run per project:
+
+- **`Api`, the shipped service: no vulnerable packages.** Independently confirmed.
+- `Api.Tests`: **exactly the 3 high advisories already recorded** in Scan 2 — `SSH.NET`
+  ([GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284)),
+  `System.Net.Http`, `System.Text.RegularExpressions`.
+
+Compliance/Security Engineer reported a fourth (`GHSA-mggc-4xg6-vcxf`, a second SSH.NET
+advisory) and recommended correcting the record. **It did not reproduce.** The tool
+returns three rows, and SSH.NET appears once. Scan 2's figure was correct and is left
+as-is — recorded here because a rejected finding is part of the evidence too.

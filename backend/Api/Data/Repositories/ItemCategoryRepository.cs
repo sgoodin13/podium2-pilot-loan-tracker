@@ -70,6 +70,27 @@ public class ItemCategoryRepository : IItemCategoryRepository
         _db.Items.AsNoTracking()
             .AnyAsync(i => i.ItemCategoryId == categoryId && i.IsActive, cancellationToken);
 
+    public async Task<IReadOnlyDictionary<Guid, int>> GetActiveItemCountsAsync(
+        IEnumerable<Guid> categoryIds,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = categoryIds.Distinct().ToList();
+
+        if (ids.Count == 0)
+        {
+            return new Dictionary<Guid, int>();
+        }
+
+        // One grouped query for the whole page, not one per row.
+        var counts = await _db.Items.AsNoTracking()
+            .Where(i => i.IsActive && ids.Contains(i.ItemCategoryId))
+            .GroupBy(i => i.ItemCategoryId)
+            .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        return counts.ToDictionary(c => c.CategoryId, c => c.Count);
+    }
+
     public async Task AddAsync(ItemCategory category, CancellationToken cancellationToken = default) =>
         await _db.ItemCategories.AddAsync(category, cancellationToken);
 

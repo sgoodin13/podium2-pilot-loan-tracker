@@ -29,6 +29,11 @@ export interface ItemCategory {
   name: string;
   description: string | null;
   isActive: boolean;
+  /**
+   * Active items still referencing this category. Drives the deactivation
+   * confirmation, so the effect is named before the save rather than after.
+   */
+  activeItemCount: number;
 }
 
 export interface LoanStatus {

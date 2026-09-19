@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -86,15 +86,31 @@ export class LoanDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Opening and cancelling both destroy the control that currently has focus, so
+   * both move it deliberately. Without this, focus falls back to `<body>` and a
+   * keyboard user has to Tab from the top of the document (Compliance finding F6;
+   * CLAUDE.md §Accessibility — "focus managed on every state change").
+   */
+  @ViewChild('returnPanelHeading') private returnPanelHeading?: ElementRef<HTMLElement>;
+  @ViewChild('returnTrigger', { read: ElementRef })
+  private returnTrigger?: ElementRef<HTMLElement>;
+
   openReturnPanel(): void {
     this.returnPanelOpen.set(true);
     this.returnError.set(null);
+
+    // The panel replaces the trigger in the DOM, so wait for the render.
+    queueMicrotask(() => this.returnPanelHeading?.nativeElement.focus());
   }
 
   cancelReturn(): void {
     this.returnPanelOpen.set(false);
     this.selectedStatusId.set('');
     this.returnError.set(null);
+
+    // Back to the control the user came from.
+    queueMicrotask(() => this.returnTrigger?.nativeElement.focus());
   }
 
   confirmReturn(): void {

@@ -59,7 +59,10 @@ export const unsavedChangesGuard: CanDeactivateFn<unknown> = (
   };
 
   return dialog
-    .open(ConfirmDialogComponent, { data, autoFocus: 'dialog' })
+    // restoreFocus returns focus to the control that opened the dialog when it
+    // closes. The other four ConfirmDialogComponent call sites already set it;
+    // this one was the outlier (Compliance finding F6).
+    .open(ConfirmDialogComponent, { data, autoFocus: 'dialog', restoreFocus: true })
     .afterClosed()
     .pipe(map((confirmed) => confirmed === true));
 };

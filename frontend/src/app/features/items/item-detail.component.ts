@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -142,7 +142,14 @@ export class ItemDetailComponent implements OnInit {
     this.formError.set(null);
     this.assetTagServerError.set(null);
     this.editing.set(true);
+
+    // Entering edit mode replaces the read-only view with the form, so focus is
+    // moved into it deliberately — matching borrower-detail, which already did
+    // this (Compliance finding F6).
+    queueMicrotask(() => this.editNameInput?.nativeElement.focus());
   }
+
+  @ViewChild('editNameInput') private editNameInput?: ElementRef<HTMLInputElement>;
 
   cancelEdit(): void {
     if (!this.form.dirty) {

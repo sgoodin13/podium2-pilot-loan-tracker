@@ -34,7 +34,26 @@ spec — and were **not re-derived** at any point during the build.
 
 | Question | Orchestrator ruling | How it landed |
 |---|---|---|
-| A1 — do C1/C2/C7 apply? | **N/A for this pilot**, recorded as an explicit ruling per Standards Guide §9 | The three list grids are plain `MatTable` + `MatSort` + `MatPaginator` with server-side paging. No grid preference wrapper, no `GridPreferenceService`, no session-timeout modal. C3 (destructive-action confirmation), C4, C5 and C6 **do** apply and are implemented |
+| A1 — do C1/C2/C7 apply? | **N/A for this pilot**, recorded as an explicit ruling per Standards Guide §9 | The three list grids are plain `MatTable` + `MatSort` + `MatPaginator` with server-side paging. No grid preference wrapper, no `GridPreferenceService`, no session-timeout modal. C3 (destructive-action confirmation) and C6 apply and are implemented. **C4 and C5 were claimed implemented here and are not — see the correction below** |
+
+### Correction — C4 and C5 were claimed implemented and are not (Compliance findings F4, F13)
+
+The row above originally read *"C3, C4, C5 and C6 **do** apply and are implemented."*
+That was wrong for two of the four, and it is corrected rather than quietly amended
+because a later run would otherwise trust it.
+
+| Convention | Claimed | Actual | Needs |
+|---|---|---|---|
+| **C4 — internationalization** | implemented | **absent.** No `$localize`, no `i18n` attributes, no translation library, no locale files; `angular.json` carries only the CLI's default `extract-i18n` target with nothing marked for extraction. Every user-facing string is hardcoded in templates and in C# service code. C4's "no string concatenation for sentences" rule is also violated systematically in both languages. | An Orchestrator ruling: implement C4, or record it N/A for a single-locale internal pilot |
+| **C5 — entity-local timestamps** | implemented | **not as specified.** Every timestamp renders through Angular's `date` pipe with no `timezone` argument, so the stored `timestamptz` is silently converted to the *viewing browser's* zone, and no timezone label appears anywhere. C5 requires the entity's own zone, always labelled, never silently converted. | An Orchestrator ruling. C5's own scope clause — *"in a multi-location system"* — makes N/A defensible for a single-location pilot |
+
+Neither is a code defect introduced by the build; both are **inaccurate self-reporting**,
+which is the more dangerous of the two because it is what the next run reads. Unlike
+C1/C2/C7, neither carries a ruling — they were affirmatively asserted as done.
+
+**Developer did not self-rule either one.** Recording an N/A for a convention is an
+Orchestrator act under Standards Guide §9, and inventing one here would repeat the exact
+error being corrected.
 | A2 — checkout confirmation copy | Approved as proposed | `Checked out — {Item Name} ({ASSET-TAG}) to {Borrower}.` as a `MatSnackBar`; step-3 button reads `Confirm checkout`. The asset-tag naming pattern is applied to every item, and to the return confirmation too |
 | A3 — batching | **One continuous pass**, single Gate 4 | Phases 0–5 built end to end without an interim checkpoint |
 
@@ -216,3 +235,92 @@ weakening assertions. No test was re-run until green. No flaky markers were need
 9. **Test-only dependency vulnerabilities** — 3 high in `Api.Tests` via
    `Testcontainers.PostgreSql`. The shipped `Api` project has none. Recommend accepting:
    Testcontainers is what makes BR-1 testable against real Postgres.
+
+---
+
+## Compliance/Security Engineer pass (post-Gate-4)
+
+Spawned per CLAUDE.md after Gate 4. All nine checklist lines covered. **13 findings, one
+environment gap.** Findings are surface-only: the agent reports, Developer fixes, the
+agent re-verifies. Every claim below was checked against disk before it was acted on —
+one did not survive that check, and it is recorded as rejected rather than dropped.
+
+### Fixed and verified (9)
+
+| # | Finding | Fix |
+|---|---|---|
+| F1 | Stub auth had **no environment guard at all** — its own remarks said promoting it beyond Local would be a genuine vulnerability, and nothing enforced that | `UseStubAuthentication` now resolves `IWebHostEnvironment` and **throws on boot** outside Development, plus a `LogWarning` on every Development start. Confirmed live in the API log. |
+| F2 | Loan-status reference edits were **completely unguarded**: renaming or deactivating "Checked Out" from a maintenance screen breaks *every checkout in the product*, and deactivating the last terminal status leaves every open loan permanently uncloseable | `GuardReferencedStatusAsync` — the checkout status (matched on its **stable seeded id**, not its editable name) cannot be renamed, deactivated or marked terminal; a status held by an open loan cannot be deactivated; the last active terminal status cannot be removed. 8 new tests. |
+| F3 | Working DB password committed in `appsettings.Development.json` **and hardcoded in C# source**, against an unconditional stack rule | Connection string moved to `dotnet user-secrets`; the design-time factory now **requires** its env var (the fallback bought nothing — the override already existed); compose credentials moved to a gitignored `.env` with a committed `.env.example`. No committed default, because a committed default is still a committed credential. |
+| F5 | The category-deactivation effect was computed and then **discarded into a server log** the user never sees | `ActiveItemCount` returned on the response via one batched query; the UI confirms at Tier 2, naming the count, before the save. |
+| F6 | Focus lost on three state changes that destroy the focused control — wizard steps, return panel, item edit mode — plus one `ConfirmDialog` call site missing `restoreFocus` | Focus moved deliberately on every transition; `restoreFocus: true` added. **axe cannot catch this** — it is exactly the portion of WCAG the automated gate does not cover. |
+| F7 | Borrower **name** logged at Information on every checkout, and `DomainException.Detail` echoed at Warning — details are built from entity names, so PII reached the log by a second, less obvious path | Checkout logs `{BorrowerId}` only; the middleware logs Title + status code and routes Detail to `Debug`. |
+| F8 | **Return is the product's one irreversible action and had its weakest confirmation** — a generic "Return this item" naming nothing, while the *reversible* retire and deactivate both got full dialogs naming the record | The panel now names the item and asset tag, names the borrower, and states that the loan cannot be reopened. |
+| F9 | `docs/Podium-SecurityFindings.md` understated the production-reachable Angular advisories as **one**; there are ten | Corrected, with the full advisory table and — more usefully — exposure evidence that covers all ten. See Scan 3 in that file. |
+| F4/F13 | C4 (i18n) and C5 (entity-local timestamps) **claimed implemented in these very notes and absent from the code** | Claims corrected above. The conventions themselves need an Orchestrator ruling — see below. |
+
+### Rejected after verification (1)
+
+- **F12 — a claimed fourth SSH.NET advisory in `Api.Tests`.** Did not reproduce.
+  `dotnet list package --vulnerable --include-transitive` returns three rows and SSH.NET
+  appears once. Scan 2's figure was already correct; the record is left as it was.
+
+### Carried for the Orchestrator (3)
+
+| # | Finding | Why Developer did not act |
+|---|---|---|
+| F4 / F13 | **C4 and C5 need a ruling** — implement, or record N/A for a single-locale, single-location internal pilot | Recording an N/A for a convention is an Orchestrator act under Standards Guide §9. Self-ruling here would repeat the exact error being corrected. |
+| F10 | **No CI pipeline exists**, so Standard #13 — the a11y checker running as a build gate on every PR, *"not a separate manual audit phase bolted on after modules are done"* — is not met. The scans are thorough but run only when a person types the command. | Adding a workflow commits the repo to an outward-facing pipeline and to CI minutes. It also needs a headless override, which collides with the headed/`slowMo` config the stack rules require for the Runtime Validation watch-run. That collision is a real decision, not a mechanical one. |
+| F11 | **The C1/C2/C7 N/A ruling lives in these session notes, not in the trigger spec** where `Podium2_Standards_Guide.md` requires it. The trigger spec's five `[RULING: …]` entries do not cover it. | Build agents do not edit delivered or methodology artifacts mid-run. This is the concrete instance of carried finding #7. |
+
+### Environment gap — SonarQube/SonarCloud not provisioned
+
+Probed before asserting unavailable: no `sonar-scanner`/`dotnet-sonarscanner` on PATH, no
+global tool, no `sonar-project.properties`, no sonar reference in any project file, no
+local image. `LoanTracker_Stack_Rules.md` §QUALITY_SCAN_TOOL required the SonarQube vs
+SonarCloud choice be *"recorded at Stage 6 kickoff"* — it was never recorded and neither
+was provisioned. **The hotspots / vulnerabilities / smells / duplication / complexity
+checklist line is unexecuted.** Nothing was installed and no output was fabricated. This
+needs an Orchestrator decision — provision it, or record an explicit deferral. It should
+not be carried as silently satisfied.
+
+### Re-verification after the fixes
+
+| Layer | Result |
+|---|---|
+| `dotnet build` / `ng build` | clean, 0 warnings |
+| Backend (xUnit + Testcontainers) | **100 passed, 0 failed** — 92 before, +8 new F2/F5 guard tests |
+| Frontend unit (Jasmine/Karma) | **29 passed, 0 failed** |
+| E2E + a11y (Playwright, headed, single worker) | **35 passed, 0 failed**; 35 skipped by project guard |
+| a11y scans | 18 desktop + 2 mobile, **0 WCAG 2.2 AA violations** — count unchanged after the F6/F8 markup changes |
+
+One honest note on that run: the first pass reported 13 failures. The cause was the
+Angular dev server having died, not the changes — every failure was
+`ERR_CONNECTION_REFUSED` at `page.goto`. Restarted and re-ran clean. Recorded because
+"it passed on the retry" is only trustworthy when the reason for the retry is stated.
+
+### Confirmed clean by the audit, with evidence
+
+- **BR-1 cannot be bypassed.** `LoanService.CheckoutAsync` is the only insert path for a
+  loan; no availability pre-check substitutes for the constraint; the catch matches on
+  SQLSTATE **and** constraint name, never on message text.
+- **No hard delete is reachable.** Zero `Remove`/`RemoveRange`/`ExecuteDelete`/raw SQL in
+  `backend/Api`; no `[HttpDelete]` anywhere; the interceptor converts stray deletes.
+- **Injection: clean.** No concatenated or interpolated SQL. Sort keys never reach SQL —
+  each repository maps through a hard-coded switch with a safe default. Paging is clamped.
+- **Output encoding: clean.** No `innerHTML`, `bypassSecurityTrust*`, `DomSanitizer` or
+  `eval` in `frontend/src` — re-verified directly, and load-bearing for the F9 ruling.
+- **Migration bootstrap guard is sufficient** — Development-only, and
+  `ASPNETCORE_ENVIRONMENT` defaults to Production when unset.
+- **Contrast pairings recomputed** rather than taken from the code comments: all five
+  pass AA.
+- **The nine QA defect fixes are real**, and the five inverted specs assert correct
+  behaviour with out-of-band verification rather than merely passing.
+
+### One latent observation, not currently a defect
+
+A soft-deleted **open** loan would remain under `ux_loans_item_open` (the index filters on
+`returned_at`, not `is_active`) while disappearing from every repository read — the item
+would read "Available" while the database refused to check it out. **No code path can
+soft-delete a loan today**, so this is not reachable. Recorded because it would become
+reachable the moment loan soft-deletion is ever added.

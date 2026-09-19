@@ -5,10 +5,24 @@ namespace Api.Dtos;
 /// <summary>Server-side pagination envelope — every list endpoint returns this.</summary>
 public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);
 
-public record ItemCategoryResponse(Guid Id, string Name, string? Description, bool IsActive)
+/// <summary>
+/// A category, carrying the count of active items that still reference it.
+/// </summary>
+/// <remarks>
+/// <paramref name="ActiveItemCount"/> exists so deactivation can be confirmed with its
+/// effect named, per Standards Guide C3 — "does anything else reference this record."
+/// The backend already had to compute this to log it; returning it lets the UI ask
+/// before the save rather than after (Compliance finding F5).
+/// </remarks>
+public record ItemCategoryResponse(
+    Guid Id,
+    string Name,
+    string? Description,
+    bool IsActive,
+    int ActiveItemCount = 0)
 {
-    public static ItemCategoryResponse From(ItemCategory c) =>
-        new(c.Id, c.Name, c.Description, c.IsActive);
+    public static ItemCategoryResponse From(ItemCategory c, int activeItemCount = 0) =>
+        new(c.Id, c.Name, c.Description, c.IsActive, activeItemCount);
 }
 
 public record LoanStatusResponse(

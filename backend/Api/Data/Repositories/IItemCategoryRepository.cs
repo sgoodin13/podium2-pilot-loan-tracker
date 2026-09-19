@@ -23,6 +23,14 @@ public interface IItemCategoryRepository
 
     Task<bool> HasActiveItemsAsync(Guid categoryId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Active item counts keyed by category, batched for a whole page — so the UI can
+    /// name the effect of deactivating a category before it happens (Compliance finding F5).
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, int>> GetActiveItemCountsAsync(
+        IEnumerable<Guid> categoryIds,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(ItemCategory category, CancellationToken cancellationToken = default);
 
     void Update(ItemCategory category);
