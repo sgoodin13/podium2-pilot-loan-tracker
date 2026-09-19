@@ -33,7 +33,7 @@
 | Dependency scan | `dotnet list package --vulnerable --include-transitive` (backend) · `npm audit` (frontend) |
 | E2E framework | Playwright — headed, single-worker, slowed via `playwright.config.ts` |
 | AI provider | N/A — no AI-assisted feature in scope |
-| Stream map | Single stream: `feature/loan-tracker-pilot` ← Orchestrator. No multi-stream split at this scale. |
+| Stream map | Single stream: `feature/20260919-loantracker-pilot` ← Orchestrator. No multi-stream split at this scale. |
 | Shared core files | `frontend/src/styles/theme.scss` · `backend/Api/Program.cs` · `backend/Api/Middleware/` · `backend/Api/Data/AppDbContext.cs` |
 
 **Source-of-truth rule.** `Products/LoanTracker.json` (under the KB root above) **declares** the stack; `LoanTracker_Stack_Rules.md` **details** it; this CLAUDE.md **carries** it (the table above — a copy on purpose); the trigger spec **verifies** it against the actual repo at Stage 4. If the stack changes: fix the JSON and the stack-rules appendix first — editing this table alone leaves the declaration stale.
@@ -161,7 +161,7 @@ Universal rendering-assertion rule: E2E asserts payload values are visible on sc
 
 Universal E2E-discipline: cover create/write paths through the actual UI form for each primary entity (Item, Borrower, Loan/checkout); tests self-isolate; selector strategy (`data-testid`) confirmed against real markup; run in process/flow order. Author **one chained full-flow happy-path spec** — create an Item → create a Borrower → run the checkout wizard → confirm the Loan appears on the Loan list → return it → confirm status updates. This is the canonical spec the Runtime Validation watch-run drives.
 
-Negative-path + boundary coverage (both intakes; this is greenfield so full-surface): per endpoint — missing required fields, malformed payload, unauthorized call (auth stub, per scope). Per field — null/empty, max length +1, whitespace-only. Boundary/edge as unit tests; negative-path as backend unit + one negative E2E per primary entity's create/edit form (checkout is the one that matters most here — asserting a second checkout of an already-loaned item is rejected and no second Loan persists). Floor and ceiling apply per `Podium2_Standards_Guide.md`.
+Negative-path + boundary coverage (both intakes; this is greenfield so full-surface): per endpoint — missing required fields, malformed payload, unauthorized call (auth stub, per scope). Per field — null/empty, max length +1, whitespace-only. Boundary/edge as unit tests; negative-path as backend unit + one negative E2E per primary entity's create/edit form (checkout is the one that matters most here — asserting a second checkout of an already-loaned item is rejected and no second Loan persists). Floor and ceiling apply per `Podium2_Template.md:244` ("Volume floor and ceiling (both binding)").
 
 Three test layers mandatory: backend unit + frontend unit + E2E.
 
@@ -233,7 +233,7 @@ After green builds + tests, before declaring done:
 
 ## Multi-Stream Single-Repo Pattern
 
-Single stream for this pilot's scope: `feature/loan-tracker-pilot` ← Orchestrator. No stream split — the pilot is deliberately small (≈14 components). Revisit if a future LoanTracker enhancement run genuinely needs parallel streams.
+Single stream for this pilot's scope: `feature/20260919-loantracker-pilot` ← Orchestrator. No stream split — the pilot is deliberately small (**25 components**, per Technical Architecture §8; the 14 often quoted is the child-requirement count, which is a different unit). Revisit if a future LoanTracker enhancement run genuinely needs parallel streams.
 
 Never modify the shared core files (Configuration table above) without Orchestrator approval.
 
@@ -248,10 +248,23 @@ Local · Shared Validation · UAT · Prod. No Dev environment. Local has full ba
 ## Session Completion
 
 1. Write `Podium-SessionNotes.md` + `Podium-ModuleStatus.md`.
-2. Capture `/cost`, append to `Podium-RunLedger.md` (create from `Podium2_RunLedger_Template.md` on first capture) — hard gate, no module/batch complete without this.
+2. Append the session row to `Podium-RunLedger.md` (create from `Podium2_RunLedger_Template.md` on first use) — resolution evidence, markers, and any environment skew.
 3. Commit to branch (ledger update rides in the same commit as session notes).
 4. Add `.gitignore` — exclude `bin/`, `obj/`, `node_modules/`, `dist/`, Docker volumes.
-5. Tell the Orchestrator: "Session complete — [N] items done. Cost captured in Podium-RunLedger.md. PR ready for creation."
+5. Tell the Orchestrator: "Session complete — [N] items done. PR ready for creation."
+
+> **`/cost` capture was removed as a hard gate** by standing Orchestrator ruling
+> (2026-09-19), as a Podium 2 methodology change rather than a LoanTracker exception.
+> Step 2 previously read *"Capture `/cost` … — hard gate, no module/batch complete without
+> this"*, and step 5 asked Developer to report "Cost captured in Podium-RunLedger.md."
+>
+> It was removed because a background Developer session **structurally cannot satisfy it**:
+> `/cost` is an interactive slash command, and the figure lives in the CLI session rather
+> than in anything an agent turn can read. A gate no agent can pass is a gap in the flow,
+> not in the run. Do not reintroduce it without solving that.
+>
+> The ledger still records cost honestly where a figure exists; where none does, "not
+> captured" is the correct entry — never an estimate.
 
 ---
 
@@ -268,4 +281,22 @@ Requirement-status: Developer marks `Resolved` at task-complete; the Orchestrato
 
 ---
 
-*LoanTracker — CLAUDE.md v1.0. Filled from `Podium2_Template.md` v1.0 (Podium 2, read-only) at onboarding, 2026-09-19. No `[PLACEHOLDER]` left unfilled. Re-confirm at the start of every later run — this instance is current as of onboarding only.*
+*LoanTracker — CLAUDE.md v1.1. Filled from `Podium2_Template.md` v1.0 (Podium 2, read-only) at onboarding, 2026-09-19. No `[PLACEHOLDER]` left unfilled. Re-confirm at the start of every later run.*
+
+### v1.1 — Stage ⑧ corrections, 2026-09-19 (Orchestrator-authorized)
+
+Four inaccuracies found during the session-1 build and surfaced as findings at Gates 3–5.
+Corrected here on explicit Orchestrator instruction at close-out, **after** the build — not
+self-edited mid-run, since a build agent rewriting its own execution guide while running
+against it is how a premise gets injected unnoticed.
+
+| # | Was | Now | Why it mattered |
+|---|---|---|---|
+| 1 | Stream map and multi-stream section both named `feature/loan-tracker-pilot` | `feature/20260919-loantracker-pilot` | The trigger spec and `origin` used the dated name. Developer built on the trigger spec's name (the per-run authority) and logged the conflict rather than guessing. |
+| 2 | "≈14 components" | **25 components**, with the note that 14 is the child-requirement count | Two different units were being compared. The architecture governs; 25 is what was built and inventoried. |
+| 3 | Test volume floor/ceiling cited to `Podium2_Standards_Guide.md` | `Podium2_Template.md:244` | The rule is not in the Standards Guide at all — its only "floor" reference is about automated a11y tooling, a different subject. Verified by grep in both files before and after. |
+| 4 | `/cost` capture as a hard gate | Removed; see the note in **Session Completion** | A gate a background agent structurally cannot pass. Eliminated by standing methodology ruling, not as a LoanTracker exception. |
+
+**Not changed, and deliberately so:** everything else in this file governed a build that
+passed Gates 3, 4 and 5 and a four-round Compliance audit. Only the four demonstrated
+inaccuracies were touched.
