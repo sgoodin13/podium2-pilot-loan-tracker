@@ -131,6 +131,12 @@ export class CheckoutWizardComponent implements OnInit {
 
   onItemSearch(value: string): void {
     this.itemSearch.set(value);
+
+    // Re-filtering re-creates the "Selected ✓" button for a still-matching chosen item.
+    // Without clearing the flag, focus would be pulled out of this search box in the
+    // middle of typing — the inverse of N1, and a worse defect than the one it fixes.
+    this.justSelected.set(false);
+
     this.loadItems();
   }
 

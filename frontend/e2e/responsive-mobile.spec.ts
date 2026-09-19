@@ -79,22 +79,21 @@ test.describe('Mobile viewport floor', () => {
     await select.scrollIntoViewIfNeeded();
     await expect(select).toBeVisible();
 
-    // DEFECT D8 — RED ON PURPOSE.
-    //
-    // The Select control is rendered and enabled, but it cannot be tapped at this
-    // viewport. Playwright's actionability log reports, repeatedly:
-    //   <td class="...cdk-column-category"> intercepts pointer events
-    //   <div class="lt-toolbar-row">        intercepts pointer events
-    // i.e. at the button's own centre another element is on top, because the page
-    // overflows sideways (D7) and the sticky toolbar/table cells overlap it once the
-    // viewport is scrolled to reach it. A phone user's tap lands on the wrong element,
-    // so the checkout wizard cannot be completed on a phone at all.
-    //
-    // Same root cause as D7: the shell's fixed 220 px sidenav and the step-2 table have
-    // no small-viewport treatment.
+    // This assertion was RED ON PURPOSE for defect D8: the Select control rendered and
+    // was enabled, but could not be tapped at this viewport — the sticky toolbar and
+    // table cells sat on top of its centre once the sideways-overflowing page (D7) was
+    // scrolled to reach it, so a tap landed on the wrong element and the wizard could not
+    // be completed on a phone at all. Both are fixed; the assertion now pins the fix.
     await select.click({ timeout: 5_000 });
 
+    // Focus moves at 393px as well as on the desktop. The wizard's transitions are the
+    // ones a phone user most needs to work, and no focus spec covered this viewport —
+    // the desktop project is the only one the focus suite runs in.
+    await expect(testId(page, `checkout-step2-selected-${assetTag}`)).toBeFocused();
+
     await testId(page, 'checkout-next-to-confirm').click();
+
+    await expect(testId(page, 'checkout-step-3')).toBeFocused();
 
     const summary = testId(page, 'checkout-confirm-summary');
     await expect(summary).toBeVisible();

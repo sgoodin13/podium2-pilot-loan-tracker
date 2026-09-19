@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { countBorrowers, findBorrowers, unique } from './support/api';
+import { findBorrowers, unique } from './support/api';
 import { testId } from './support/ui';
 
 /**
@@ -15,26 +15,29 @@ test.describe('Add borrower — negative paths', () => {
     page,
     request,
   }) => {
-    const before = await countBorrowers(request);
     const department = unique('QA Blank Name Dept');
+    // A searchable unique marker. Department is not covered by the borrower search, so
+    // the email is what lets this test prove "nothing persisted" against ITS OWN data
+    // rather than against a global row count.
+    const email = `${unique('qa.blank.name')}@example.test`.toLowerCase();
 
     await page.goto('/borrowers/new');
 
     // Optional fields only — the required one left empty.
     await testId(page, 'borrower-add-department').fill(department);
+    await testId(page, 'borrower-add-email').fill(email);
     await testId(page, 'borrower-add-save').click();
 
     await expect(page.getByText('Name is required.')).toBeVisible();
     await expect(page).toHaveURL(/\/borrowers\/new$/);
 
-    expect(await countBorrowers(request)).toBe(before);
+    expect(await findBorrowers(request, email)).toHaveLength(0);
   });
 
   test('a malformed email is rejected inline and the borrower is not created', async ({
     page,
     request,
   }) => {
-    const before = await countBorrowers(request);
     const name = unique('QA Bad Email Borrower');
 
     await page.goto('/borrowers/new');
@@ -47,6 +50,5 @@ test.describe('Add borrower — negative paths', () => {
     await expect(page).toHaveURL(/\/borrowers\/new$/);
 
     expect(await findBorrowers(request, name)).toHaveLength(0);
-    expect(await countBorrowers(request)).toBe(before);
   });
 });

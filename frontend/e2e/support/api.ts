@@ -134,18 +134,20 @@ export async function findItems(
   return ((await response.json()) as Paged<ItemRow>).items;
 }
 
-/** Total row count, used to prove a rejected create added nothing at all. */
-export async function countItems(request: APIRequestContext): Promise<number> {
-  const response = await request.get(`${API}/api/items?page=1&pageSize=1`);
-  expect(response.ok()).toBeTruthy();
-  return ((await response.json()) as Paged<ItemRow>).totalCount;
-}
-
-export async function countBorrowers(request: APIRequestContext): Promise<number> {
-  const response = await request.get(`${API}/api/borrowers?page=1&pageSize=1`);
-  expect(response.ok()).toBeTruthy();
-  return ((await response.json()) as Paged<BorrowerRow>).totalCount;
-}
+// `countItems` / `countBorrowers` were removed deliberately, and should not come back.
+//
+// They returned a GLOBAL count of every active row, and five specs asserted that the
+// count was unchanged across a rejected create. `playwright.config.ts` states that tests
+// "self-isolate but share one database" — a global count is precisely what does not
+// self-isolate. Anything creating or retiring a row between the two reads breaks it, and
+// the count is active-only, so a soft delete moves it too. It failed twice under two
+// different mutators and passed in isolation both times, which is the signature CLAUDE.md's
+// flaky-test rule exists to stop being waved through.
+//
+// Every call site already had, or has now been given, a scoped assertion beside it —
+// `findItems(tag)` / `findBorrowers(email)` — which proves the same thing against the
+// test's own data. That is strictly stronger: the global count could not distinguish
+// "nothing was created" from "something was created and something else was retired."
 
 export async function findBorrowers(
   request: APIRequestContext,

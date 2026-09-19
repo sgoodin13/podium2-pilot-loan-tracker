@@ -329,6 +329,65 @@ is created when edit mode ends and the directive cannot apply.
 `toBeFocused()` on every transition, including the borrower-entry case that had gone
 three rounds unasserted on the strength of "it already worked."
 
+### Re-verification round 4 — product clean, and one flaky assertion removed
+
+The fourth pass attacked the three N-fixes at two viewports plus routes I had not named,
+and could not defeat any of them. Confirmed clean: the item-detail dirty-discard sequence
+(`restoreFocus` → destroy → deferred move lands on the Edit button, not `<body>`), the
+"Keep editing" branch, `justSelected()` across four staleness routes, mobile 393px
+transitions, and that the mechanism collapse left no hole.
+
+It also confirmed the one judgement call I flagged: **N2 genuinely cannot use the
+directive.** The item-detail Edit button is `[disabled]`, never destroyed, so
+`ngAfterViewInit` fires once at first paint and can never fire again. `focusWhenRendered`
+earns its single remaining caller.
+
+**I found and fixed one defect of my own in this round, before the audit reported.**
+Reasoning through the staleness question, I realised my N1 fix would pull focus *out of
+the step-2 search box* mid-typing: re-filtering re-creates the "Selected ✓" button for a
+still-matching chosen item. I wrote the test first, watched it fail, then fixed it by
+clearing the flag in `onItemSearch`. The audit's independent finding is worth recording
+alongside: the committed code already behaved correctly on that route, most likely because
+MatTable reuses the row's DOM node across a re-filter so the directive never re-fires.
+**The fix stays** — it makes the invariant explicit in our own code rather than depending
+on a third-party differ that can change under us on an upgrade.
+
+#### The flaky assertion — fixed properly, not re-run until green
+
+`countItems` / `countBorrowers` returned a **global count of every active row**, and five
+specs across three files asserted it was unchanged across a rejected create.
+`playwright.config.ts` states tests "self-isolate but share one database" — a global count
+is exactly what does not self-isolate. It had failed **twice under two different
+mutators** (the auditor retiring probe rows in round 3; my own work in round 4) and passed
+in isolation both times. That is the signature CLAUDE.md's flaky-test rule exists to stop
+being waved through, and I had been about to attribute my own failing run to the dev
+server without checking.
+
+Both helpers are **deleted**, with a comment where they stood explaining why they must not
+return. Four call sites already had a scoped assertion beside them
+(`findItems(tag)` / `findBorrowers(name)`); the fifth — the blank-name test — had the
+global count as its *only* proof, so rather than delete its coverage it was given a
+searchable unique email to assert against. The scoped form is strictly stronger: a global
+count cannot distinguish "nothing was created" from "something was created and something
+else was retired."
+
+**Proven, not assumed.** The suite was run three times: twice clean, then a third time
+**while 90 items were being created concurrently through the API** — the exact condition
+that broke it twice. 44/44 passed. Under the old assertions that run would have failed.
+
+The 90 synthetic probe items were then **retired, not deleted** — soft-delete is absolute
+for this product, so retiring them is the only permitted cleanup and they remain as
+inactive rows.
+
+#### Latch-flag note for whoever adds a reload path next
+
+`navigated()`, `returnPanelWasOpen()`, `editSessionEnded()` and `justSelected()` are latch
+flags. Only `justSelected()` is ever cleared. The audit found that after an edit session, a
+deactivate-triggered reload on borrower-detail re-creates the Edit button and it takes
+focus — a route the flag was not designed for, with a benign and arguably better outcome
+than the alternative. Not a defect; recorded so the next person adding a reload path knows
+these latch and do not clear.
+
 ### One process note, recorded because it nearly caused a false conclusion
 
 Two Playwright runs in this session produced failures that were **not** code defects: the
@@ -380,7 +439,7 @@ not be carried as silently satisfied.
 | `dotnet build` / `ng build` | clean, 0 warnings |
 | Backend (xUnit + Testcontainers) | **101 passed, 0 failed** — 92 before, +9 new F2/F5 guard tests |
 | Frontend unit (Jasmine/Karma) | **29 passed, 0 failed** |
-| E2E + a11y (Playwright, headed, single worker) | **42 passed, 0 failed**; 42 skipped by project guard — 35 before, +7 new focus-management specs |
+| E2E + a11y (Playwright, headed, single worker) | **44 passed, 0 failed**; 44 skipped by project guard — 35 before, +9 new focus-management specs. Run three times, the third under concurrent database mutation |
 | a11y scans | 18 desktop + 2 mobile, **0 WCAG 2.2 AA violations** — count unchanged after the F6/F8 markup changes |
 
 One honest note on that run: the first pass reported 13 failures. The cause was the

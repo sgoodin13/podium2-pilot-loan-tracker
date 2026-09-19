@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { countItems, createItem, findItems, firstCategory, unique } from './support/api';
+import { createItem, findItems, firstCategory, unique } from './support/api';
 import { pickSelectOption, testId } from './support/ui';
 
 /**
@@ -18,7 +18,6 @@ test.describe('Add item — negative paths', () => {
     request,
   }) => {
     const category = await firstCategory(request);
-    const before = await countItems(request);
     const name = unique('QA Missing Tag Item');
 
     await page.goto('/items/new');
@@ -35,7 +34,6 @@ test.describe('Add item — negative paths', () => {
 
     // And nothing was written.
     expect(await findItems(request, name)).toHaveLength(0);
-    expect(await countItems(request)).toBe(before);
   });
 
   test('a duplicate asset tag is rejected inline on the field and creates no second item', async ({
@@ -47,7 +45,6 @@ test.describe('Add item — negative paths', () => {
 
     // The existing holder of the tag.
     await createItem(request, category.id, assetTag);
-    const before = await countItems(request);
 
     await page.goto('/items/new');
     await testId(page, 'item-add-name').fill(`QA Duplicate Attempt ${assetTag}`);
@@ -63,7 +60,6 @@ test.describe('Add item — negative paths', () => {
 
     // Exactly one item still carries the tag.
     expect(await findItems(request, assetTag)).toHaveLength(1);
-    expect(await countItems(request)).toBe(before);
 
     // Editing the tag clears the stale server verdict rather than leaving it stuck.
     await testId(page, 'item-add-assettag').fill(`${assetTag}-B`);

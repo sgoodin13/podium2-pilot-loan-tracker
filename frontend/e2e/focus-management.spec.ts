@@ -162,6 +162,39 @@ test.describe('Focus management on destructive state changes', () => {
   });
 
   /**
+   * The inverse risk of N1: a focus move that fires when it should not.
+   *
+   * Searching step 2 after choosing an item re-renders the table, which re-creates the
+   * "Selected ✓" button. If the "just chose" flag were still set, focus would be yanked
+   * out of the search box in the middle of typing — a worse defect than the one the flag
+   * was added to fix, and one no assertion about the happy path would ever catch.
+   */
+  test('searching step 2 after choosing an item does not steal focus from the search box', async ({
+    page,
+    request,
+  }) => {
+    const category = await firstCategory(request);
+    const assetTag = unique('QA-FOCUSSTALE');
+    await createItem(request, category.id, assetTag, `QA Focus Stale ${assetTag}`);
+    const borrower = await createBorrower(request, unique('QA Focus Stale Borrower'));
+
+    await page.goto('/checkout');
+    await selectBorrowerOption(page, borrower.name);
+    await testId(page, 'checkout-next-to-item').click();
+
+    await testId(page, 'checkout-item-search').fill(assetTag);
+    await testId(page, `checkout-step2-select-${assetTag}`).click();
+    await expect(testId(page, `checkout-step2-selected-${assetTag}`)).toBeFocused();
+
+    // Now refine the search. The chosen item still matches, so its Selected button is
+    // re-created — focus must stay where the user is typing.
+    await testId(page, 'checkout-item-search').click();
+    await testId(page, 'checkout-item-search').fill(assetTag.slice(0, -1));
+
+    await expect(testId(page, 'checkout-item-search')).toBeFocused();
+  });
+
+  /**
    * Leaving edit mode is the mirror of entering it, and was missed on both detail
    * screens — `loan-detail` got open *and* cancel, these two got only the entry.
    */
@@ -177,6 +210,38 @@ test.describe('Focus management on destructive state changes', () => {
 
     // Pristine form — cancels without the discard dialog.
     await page.getByRole('button', { name: 'Cancel' }).click();
+
+    await expect(testId(page, 'item-edit-btn')).toBeFocused();
+  });
+
+  /**
+   * The worst of the leave-edit-mode paths, and the one that went uncovered longest.
+   *
+   * With a dirty form, Cancel opens the discard dialog. That dialog sets
+   * `restoreFocus: true`, so on close it hands focus back to the Cancel button — and the
+   * component then destroys that button by leaving edit mode. Focus lands on a detached
+   * node, which reads as `<body>`. The restore and the teardown fight each other, and the
+   * restore runs first.
+   */
+  test('discarding dirty item edits returns focus to the Edit button, not a detached node', async ({
+    page,
+    request,
+  }) => {
+    const category = await firstCategory(request);
+    const assetTag = unique('QA-FOCUSDIRTY');
+    const item = await createItem(request, category.id, assetTag, `QA Focus Dirty ${assetTag}`);
+
+    await page.goto(`/items/${item.id}`);
+    await testId(page, 'item-edit-btn').click();
+    await expect(testId(page, 'item-edit-name')).toBeFocused();
+
+    // Dirty the form so Cancel routes through the discard dialog.
+    await testId(page, 'item-edit-name').fill(`QA Focus Dirty Edited ${assetTag}`);
+
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(testId(page, 'item-edit-discard-message')).toBeVisible();
+
+    await testId(page, 'confirm-accept').click();
 
     await expect(testId(page, 'item-edit-btn')).toBeFocused();
   });

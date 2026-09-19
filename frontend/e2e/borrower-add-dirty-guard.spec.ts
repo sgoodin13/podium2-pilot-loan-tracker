@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { countBorrowers, findBorrowers, unique } from './support/api';
+import { findBorrowers, unique } from './support/api';
 import { testId } from './support/ui';
 
 /**
@@ -67,7 +67,6 @@ test.describe('Add borrower — dirty-state guard', () => {
 
     await expect.poll(async () => (await findBorrowers(request, name)).length).toBe(1);
 
-    const before = await countBorrowers(request);
 
     // If the guard stranded the user on the form, "Keep editing" + Save again is the
     // natural next thing a person does — and it must not write a second row.
@@ -82,6 +81,5 @@ test.describe('Add borrower — dirty-state guard', () => {
       await findBorrowers(request, name),
       'saving twice from a stranded Add form must not create a duplicate borrower',
     ).toHaveLength(1);
-    expect(await countBorrowers(request)).toBe(before);
   });
 });
