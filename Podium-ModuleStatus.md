@@ -13,23 +13,28 @@ Status values: Developer sets `Resolved` at task-complete. The Orchestrator flip
 
 | Path | Title | Screen / surface | Status |
 |---|---|---|---|
-| REQ-1.1 | Item list/search | `scr-item-list` | Resolved |
-| REQ-1.2 | Add item | `scr-item-add` | Resolved |
-| REQ-1.3 | Item detail (incl. retire guard) | `scr-item-detail` | Resolved |
-| REQ-2.1 | Borrower list/search | `scr-borrower-list` | Resolved |
-| REQ-2.2 | Add borrower | `scr-borrower-add` | Resolved |
-| REQ-2.3 | Borrower detail (incl. deactivate guard) | `scr-borrower-detail` | Resolved |
-| REQ-3.1 | Select borrower | `scr-checkout-wizard` step 1 | Resolved |
-| REQ-3.2 | Select available item | `scr-checkout-wizard` step 2 | Resolved |
-| REQ-3.3 | Commit Loan — BR-1 atomic enforcement | `scr-checkout-wizard` step 3 | Resolved |
-| REQ-3.4 | Reject, show reason (negative path) | `scr-checkout-wizard` rejection panel | Resolved |
-| REQ-4.1 | Loan list/search | `scr-loan-list` | Resolved |
-| REQ-4.2 | Loan detail — return action | `scr-loan-detail` | Resolved |
-| REQ-5.1 | Item Category maintenance | `ref-item-category` | Resolved |
-| REQ-5.2 | Loan Status maintenance | `ref-loan-status` | Resolved |
+| REQ-1.1 | Item list/search | `scr-item-list` | Closed |
+| REQ-1.2 | Add item | `scr-item-add` | Closed |
+| REQ-1.3 | Item detail (incl. retire guard) | `scr-item-detail` | Closed |
+| REQ-2.1 | Borrower list/search | `scr-borrower-list` | Closed |
+| REQ-2.2 | Add borrower | `scr-borrower-add` | Closed |
+| REQ-2.3 | Borrower detail (incl. deactivate guard) | `scr-borrower-detail` | Closed |
+| REQ-3.1 | Select borrower | `scr-checkout-wizard` step 1 | Closed |
+| REQ-3.2 | Select available item | `scr-checkout-wizard` step 2 | Closed |
+| REQ-3.3 | Commit Loan — BR-1 atomic enforcement | `scr-checkout-wizard` step 3 | Closed |
+| REQ-3.4 | Reject, show reason (negative path) | `scr-checkout-wizard` rejection panel | Closed |
+| REQ-4.1 | Loan list/search | `scr-loan-list` | Closed |
+| REQ-4.2 | Loan detail — return action | `scr-loan-detail` | Closed |
+| REQ-5.1 | Item Category maintenance | `ref-item-category` | Closed |
+| REQ-5.2 | Loan Status maintenance | `ref-loan-status` | Closed |
 
-**14 of 14 child requirements Resolved.** None Closed — that flip is the Orchestrator's,
-post-merge.
+**14 of 14 child requirements `Closed`** — flipped at Stage ⑧ close-out on 2026-09-19,
+after Gate 5 sign-off, the live walkthrough, and the merge of PR #1 into `main`.
+
+The same 14, plus their 5 parents, are also `Closed` in
+`requirements/loantracker/LoanTracker_Requirements.md` — which had been left at `Open` for
+the entire run while this file tracked `Resolved`. The two disagreed throughout and
+nothing caught it until close-out; see that file's header note.
 
 ---
 
@@ -85,7 +90,7 @@ post-merge.
 
 ---
 
-## Known gaps carried to Gate 4
+## Known gaps carried to Gate 4 — all ruled, see `trigger_spec_LoanTracker.md` §4
 
 1. **Angular 18 production CVE** (`GHSA-hh8m-fm6v-7cvg`) — needs an Orchestrator ruling;
    the only fix is a major-version jump away from the approved stack.

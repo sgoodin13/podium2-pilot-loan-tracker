@@ -509,3 +509,68 @@ A soft-deleted **open** loan would remain under `ux_loans_item_open` (the index 
 would read "Available" while the database refused to check it out. **No code path can
 soft-delete a loan today**, so this is not reachable. Recorded because it would become
 reachable the moment loan soft-deletion is ever added.
+
+---
+
+## Stage ⑧ — close-out
+
+Gate 5 approved: the Orchestrator watched the live headed walkthrough and signed off with
+no changes found. The walkthrough ran the canonical chained path plus all four blocked
+paths — **5/5 passed in 18.6s**, headed at `slowMo: 250`, single worker, against live
+`dotnet run` + `ng serve`.
+
+### Done at close-out
+
+| Action | Result |
+|---|---|
+| PR #1 marked ready and merged to `main` | See below |
+| Requirement statuses flipped | **19 rows `Closed`** — 5 parents + 14 children |
+| Run ledger updated | Two stale blocks corrected; new resolution-evidence rows added |
+| KB fact corrected | `Products/LoanTracker.json` domain ruling (below) |
+| Stale-doc sweep | README and `design/ui-spec/` verified accurate; no changes needed |
+
+### The KB fact that was wrong, and why it mattered
+
+`Products/LoanTracker.json` declared BR-1 as *"enforced as a checkout validation."* That is
+the **application-layer framing Gate 1 and trigger spec §4 explicitly overrode** — the
+ruling is database-level enforcement, "not negotiable at Gate 3," and the build followed
+the ruling, not the KB.
+
+CLAUDE.md's startup sequence makes this file the **first thing a Developer reads**. Left
+uncorrected, the next run would have started from the weaker model this pilot exists to
+disprove, and would have had to be argued back to the right one — or worse, would not have
+been. Corrected to state the filtered unique index by name, that the service performs no
+availability pre-check, and that the previous wording was wrong. JSON re-validated after
+the edit.
+
+### Two stale blocks found in the ledger
+
+1. **The `/cost` capture gap** still carried a "⚠ needs the Orchestrator" action asking for
+   a figure to be appended. That requirement was **eliminated** as a standing methodology
+   change. The ask is withdrawn; the honest "not captured" stays as the permanent record,
+   and the original reasoning is retained as the *finding* that prompted the change.
+2. **The Angular CVE row** still read "Not resolved. Surfaced for an Orchestrator ruling at
+   Gate 4." It has been ruled Tier 2, it is a **family of ten** advisories rather than one,
+   and `live-owed` still stands. All three corrected.
+
+### A real process gap, recorded rather than quietly fixed
+
+**Requirement status lived in two files and they disagreed for the entire run.**
+`requirements/loantracker/LoanTracker_Requirements.md` sat at `Open` from Stage ④ to close-out
+while `Podium-ModuleStatus.md` tracked `Resolved`. Nothing checked that they agreed, and
+nothing caught it — not QA, not four Compliance rounds, not Gate 4 or Gate 5. The rows went
+`Open → Closed` in one step at the end.
+
+The end state is correct. But a reader reconstructing this run from the requirements file
+alone would see fourteen requirements sitting untouched until the final commit. **That is a
+methodology finding, not a clerical one:** the status is duplicated across two artifacts
+with no reconciliation step in the flow.
+
+### What is NOT closed by this
+
+- **`live-owed`** stands on the Angular advisory family. Static verification only.
+- **SonarQube** never ran. A recorded decision, not a pass — that audit line has no
+  evidence behind it.
+- **BR-1 is proven sequentially**, never under genuine concurrency (`Podium2_Template.md:246`).
+- **`BorrowerRepository`'s unreachable `department` filter** is carried to the next session,
+  deliberately unfixed.
