@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — Borrowers</title>
+<link rel="stylesheet" href="assets/mockups.css">
+</head>
+<body>
+<a href="#main" class="lt-skip-link">Skip to main content</a>
+<div class="lt-shell">
+  <nav class="lt-sidenav" aria-label="Primary">
+    <div class="brand">LoanTracker</div>
+    <a href="scr-item-list.html">Items</a>
+    <a href="scr-borrower-list.html" class="active">Borrowers</a>
+    <a href="scr-checkout-wizard.html">Checkout</a>
+    <a href="scr-loan-list.html">Loans</a>
+    <a href="ref-item-category.html">Item Categories</a>
+    <a href="ref-loan-status.html">Loan Statuses</a>
+  </nav>
+  <main id="main" class="lt-main">
+    <div class="lt-breadcrumb">Borrowers</div>
+    <div class="lt-toolbar">
+      <h1>Borrowers</h1>
+      <button class="lt-btn lt-btn-primary">+ Add borrower</button>
+    </div>
+    <div class="lt-card">
+      <div class="lt-toolbar-row">
+        <div class="lt-search"><input type="search" placeholder="Search borrowers…" aria-label="Search borrowers"></div>
+      </div>
+      <table class="lt-table">
+        <thead><tr><th>Name</th><th>Department</th><th>Contact</th><th>Open loans</th></tr></thead>
+        <tbody>
+          <tr><td>J. Alvarez</td><td>Facilities</td><td>j.alvarez@example.org</td><td>1</td></tr>
+          <tr><td>R. Chen</td><td>Engineering</td><td>r.chen@example.org</td><td>1</td></tr>
+          <tr><td>T. Okonkwo</td><td>Events</td><td>t.okonkwo@example.org</td><td>0</td></tr>
+          <tr><td>M. Petrov</td><td>Labs</td><td>m.petrov@example.org</td><td>0</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:#8a93a3;margin-top:10px">Showing 4 of 19 borrowers</div>
+    </div>
+    <p class="lt-a11y-note">Pattern 08 (Simple flat grid). "Open loans" gives Staff a quick signal before attempting to deactivate someone.</p>
+  </main>
+</div>
+</body>
+</html>

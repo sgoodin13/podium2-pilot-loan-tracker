@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — Item Categories</title>
+<link rel="stylesheet" href="assets/mockups.css">
+</head>
+<body>
+<a href="#main" class="lt-skip-link">Skip to main content</a>
+<div class="lt-shell">
+  <nav class="lt-sidenav" aria-label="Primary">
+    <div class="brand">LoanTracker</div>
+    <a href="scr-item-list.html">Items</a>
+    <a href="scr-borrower-list.html">Borrowers</a>
+    <a href="scr-checkout-wizard.html">Checkout</a>
+    <a href="scr-loan-list.html">Loans</a>
+    <a href="ref-item-category.html" class="active">Item Categories</a>
+    <a href="ref-loan-status.html">Loan Statuses</a>
+  </nav>
+  <main id="main" class="lt-main">
+    <div class="lt-breadcrumb">Item Categories</div>
+    <div class="lt-toolbar">
+      <h1>Item Categories</h1>
+      <div style="display:flex;gap:8px"><button class="lt-btn lt-btn-secondary">+ Add row</button><button class="lt-btn lt-btn-primary">Save all</button></div>
+    </div>
+    <div class="lt-card">
+      <table class="lt-table">
+        <thead><tr><th>Name</th><th>Description</th><th>Active</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Power Tools</td><td>Drills, saws, sanders</td><td><span class="lt-chip lt-chip-available">Yes</span></td><td><span style="color:#1a4d8f;font-size:12px;cursor:pointer">Edit</span></td></tr>
+          <tr><td>AV Equipment</td><td>Cameras, projectors, mics</td><td><span class="lt-chip lt-chip-available">Yes</span></td><td><span style="color:#1a4d8f;font-size:12px;cursor:pointer">Edit</span></td></tr>
+          <tr><td>Lab Equipment</td><td>Microscopes, meters</td><td><span class="lt-chip lt-chip-available">Yes</span></td><td><span style="color:#1a4d8f;font-size:12px;cursor:pointer">Edit</span></td></tr>
+          <tr style="background:#eaf1fb"><td><input value="Office Equipment" style="width:100%;font-size:12px;padding:4px 6px;border:1px solid #1a4d8f;border-radius:4px"></td><td><input value="Printers, scanners" style="width:100%;font-size:12px;padding:4px 6px;border:1px solid #1a4d8f;border-radius:4px"></td><td><select style="font-size:12px"><option>Yes</option></select></td><td><button class="lt-btn lt-btn-primary" style="padding:3px 8px;font-size:11px">Save</button></td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:#8a93a3;margin-top:10px">Showing 4 of 4 categories</div>
+    </div>
+    <p class="lt-a11y-note">Pattern 18 (Simple lookup table), inline-editable. User-addable/open-ended — exempt from the fixed-catalog completeness check (Podium2_Modeling_Standard §8.4c); the "Showing N of N" footer states the count honestly rather than implying a closed set.</p>
+  </main>
+</div>
+</body>
+</html>

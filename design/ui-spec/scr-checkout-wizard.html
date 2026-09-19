@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — Checkout</title>
+<link rel="stylesheet" href="assets/mockups.css">
+</head>
+<body>
+<a href="#main" class="lt-skip-link">Skip to main content</a>
+<div class="lt-shell">
+  <nav class="lt-sidenav" aria-label="Primary">
+    <div class="brand">LoanTracker</div>
+    <a href="scr-item-list.html">Items</a>
+    <a href="scr-borrower-list.html">Borrowers</a>
+    <a href="scr-checkout-wizard.html" class="active">Checkout</a>
+    <a href="scr-loan-list.html">Loans</a>
+    <a href="ref-item-category.html">Item Categories</a>
+    <a href="ref-loan-status.html">Loan Statuses</a>
+  </nav>
+  <main id="main" class="lt-main">
+    <div class="lt-breadcrumb">Checkout</div>
+    <div class="lt-toolbar"><h1>Check out an item</h1></div>
+
+    <div class="lt-card">
+      <div class="lt-stepper" role="group" aria-label="Checkout steps">
+        <div class="lt-step done"><div class="dot">&#10003;</div><div class="lbl">Borrower</div></div>
+        <div class="lt-connector done"></div>
+        <div class="lt-step active"><div class="dot">2</div><div class="lbl">Item</div></div>
+        <div class="lt-connector"></div>
+        <div class="lt-step todo"><div class="dot">3</div><div class="lbl">Confirm</div></div>
+      </div>
+      <div style="font-size:11px;color:#5b6472;margin-bottom:10px">Borrower selected: <strong>J. Alvarez</strong> · Step 2 of 3</div>
+      <div class="lt-search" style="margin-bottom:10px"><input type="search" placeholder="Search available items…" aria-label="Search available items"></div>
+      <table class="lt-table">
+        <thead><tr><th>Asset tag</th><th>Name</th><th>Category</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>PRJ-0022</td><td>Epson Projector</td><td>AV Equipment</td><td><button class="lt-btn lt-btn-secondary" style="padding:5px 12px;font-size:12px">Select</button></td></tr>
+          <tr><td>MIC-0007</td><td>Digital Microscope</td><td>Lab Equipment</td><td><button class="lt-btn lt-btn-primary" style="padding:5px 12px;font-size:12px">Selected &#10003;</button></td></tr>
+          <tr><td>CAM-0003</td><td>DSLR Camera Kit</td><td>AV Equipment</td><td><button class="lt-btn lt-btn-secondary" style="padding:5px 12px;font-size:12px">Select</button></td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:#8a93a3;margin:8px 0 14px">Only items with zero open loans appear here — this list can still be stale by the time you confirm (see below).</div>
+      <div style="display:flex;justify-content:space-between"><button class="lt-btn lt-btn-secondary">&larr; Back</button><button class="lt-btn lt-btn-primary">Next: Confirm &rarr;</button></div>
+    </div>
+
+    <div class="lt-card" style="border-left:3px solid #791F1F">
+      <h3 style="font-size:13px;margin-bottom:8px">Rejection state (shown if the item was checked out by someone else between step 2 and Confirm)</h3>
+      <div style="padding:10px 12px;background:#fbe9e9;border-radius:4px;color:#791F1F;font-size:13px">
+        <strong>Couldn't complete checkout.</strong> Digital Microscope (MIC-0007) was just checked out to another borrower. Nothing was saved. Pick a different item to continue.
+      </div>
+      <div style="margin-top:10px"><button class="lt-btn lt-btn-secondary">&larr; Back to item selection</button></div>
+    </div>
+    <p class="lt-a11y-note">Pattern 06 (Wizard/stepped form). The rejection panel is BR-1 made visible — the negative-path case the pilot brief calls out (t4 in the Checkout process swimlane). Confirmation on success names the specific asset tag, never just the category.</p>
+  </main>
+</div>
+</body>
+</html>

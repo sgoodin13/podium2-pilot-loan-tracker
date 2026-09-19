@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — Borrower Detail</title>
+<link rel="stylesheet" href="assets/mockups.css">
+</head>
+<body>
+<a href="#main" class="lt-skip-link">Skip to main content</a>
+<div class="lt-shell">
+  <nav class="lt-sidenav" aria-label="Primary">
+    <div class="brand">LoanTracker</div>
+    <a href="scr-item-list.html">Items</a>
+    <a href="scr-borrower-list.html" class="active">Borrowers</a>
+    <a href="scr-checkout-wizard.html">Checkout</a>
+    <a href="scr-loan-list.html">Loans</a>
+    <a href="ref-item-category.html">Item Categories</a>
+    <a href="ref-loan-status.html">Loan Statuses</a>
+  </nav>
+  <main id="main" class="lt-main">
+    <div class="lt-breadcrumb">Borrowers &gt; J. Alvarez</div>
+    <div class="lt-toolbar">
+      <h1>J. Alvarez</h1>
+      <div style="display:flex;gap:8px"><button class="lt-btn lt-btn-secondary">Edit</button><button class="lt-btn lt-btn-danger" disabled title="Borrower has an open loan">Deactivate</button></div>
+    </div>
+    <div class="lt-card">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 20px">
+        <div><div style="font-size:11px;color:#8a93a3">Department</div><div>Facilities</div></div>
+        <div><div style="font-size:11px;color:#8a93a3">Contact email</div><div>j.alvarez@example.org</div></div>
+        <div><div style="font-size:11px;color:#8a93a3">Contact phone</div><div>—</div></div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#8a5a0a;background:#fdf3e0;padding:8px 10px;border-radius:4px">Deactivate is disabled — this borrower has 1 open loan (Cordless Drill DRL-0114). Return it first.</div>
+    </div>
+    <div class="lt-card">
+      <h3 style="font-size:13px;margin-bottom:10px">Loans</h3>
+      <table class="lt-table">
+        <thead><tr><th>Item</th><th>Checked out</th><th>Returned</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Cordless Drill (DRL-0114)</td><td>2026-09-15</td><td>—</td><td><span class="lt-chip lt-chip-onloan">Checked Out</span></td></tr>
+          <tr><td>DSLR Camera Kit (CAM-0003)</td><td>2026-07-01</td><td>2026-07-05</td><td><span class="lt-chip lt-chip-terminal">Returned</span></td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:#8a93a3;margin-top:8px">Showing 2 of 2 loans for this borrower</div>
+    </div>
+    <p class="lt-a11y-note">Pattern 12 (One-to-many list). Mirrors the Item detail screen's structure — same pattern, different parent.</p>
+  </main>
+</div>
+</body>
+</html>

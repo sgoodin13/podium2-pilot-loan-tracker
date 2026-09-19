@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — UI Spec Index</title>
+<style>
+  body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#f4f6f9;margin:0;color:#1f2937}
+  .hdr{background:#fff;border-bottom:1px solid #e1e5ea;padding:28px 44px}
+  .hdr .lbl{font-size:11px;font-weight:600;color:#1a4d8f;text-transform:uppercase;letter-spacing:.06em}
+  .hdr h1{font-size:26px;font-weight:600;margin:4px 0}
+  .hdr .sub{font-size:13.5px;color:#5b6472}
+  .wrap{max-width:1000px;margin:0 auto;padding:32px 44px}
+  .grp{margin-bottom:28px}
+  .grp h2{font-size:14px;font-weight:600;color:#1a4d8f;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e1e5ea}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .card{background:#fff;border:1px solid #e1e5ea;border-radius:10px;padding:14px 16px;text-decoration:none;color:inherit;display:block}
+  .card:hover{border-color:#1a4d8f;box-shadow:0 2px 8px rgba(26,77,143,.12)}
+  .card .name{font-size:13.5px;font-weight:600;margin-bottom:4px}
+  .card .pat{font-size:11px;color:#5b6472}
+  .docs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .docs a{font-size:12px;color:#1a4d8f;text-decoration:none;background:#eaf1fb;padding:6px 12px;border-radius:8px}
+  .foot{text-align:center;padding:24px;font-size:11px;color:#8a93a3}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="lbl">LoanTracker — Podium 2 pilot</div>
+  <h1>design/ui-spec — Index</h1>
+  <div class="sub">Stage ③ · Gate 2 review surface. 11 screens, control library Angular Material, WCAG 2.2 AA.</div>
+</div>
+<div class="wrap">
+  <div class="docs">
+    <a href="ui-spec.md">ui-spec.md</a>
+    <a href="patterns-applied.md">patterns-applied.md</a>
+    <a href="assets/mockups.css">assets/mockups.css</a>
+  </div>
+
+  <div class="grp">
+    <h2>Item Management</h2>
+    <div class="cards">
+      <a class="card" href="scr-item-list.html"><div class="name">Items (list/search)</div><div class="pat">Pattern 08 — Simple flat grid</div></a>
+      <a class="card" href="scr-item-add.html"><div class="name">Add item</div><div class="pat">Pattern 04 — Single record form</div></a>
+      <a class="card" href="scr-item-detail.html"><div class="name">Item detail</div><div class="pat">Pattern 12 — One-to-many list</div></a>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>Borrower Management</h2>
+    <div class="cards">
+      <a class="card" href="scr-borrower-list.html"><div class="name">Borrowers (list/search)</div><div class="pat">Pattern 08 — Simple flat grid</div></a>
+      <a class="card" href="scr-borrower-add.html"><div class="name">Add borrower</div><div class="pat">Pattern 04 — Single record form</div></a>
+      <a class="card" href="scr-borrower-detail.html"><div class="name">Borrower detail</div><div class="pat">Pattern 12 — One-to-many list</div></a>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>Checkout <span style="font-size:11px;color:#791F1F;font-weight:400">(the modeled process — BR-1 lives here)</span></h2>
+    <div class="cards">
+      <a class="card" href="scr-checkout-wizard.html"><div class="name">Checkout wizard</div><div class="pat">Pattern 06 — Wizard/stepped form</div></a>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>Loan Tracking</h2>
+    <div class="cards">
+      <a class="card" href="scr-loan-list.html"><div class="name">Loans (list/search)</div><div class="pat">Pattern 08 — Simple flat grid</div></a>
+      <a class="card" href="scr-loan-detail.html"><div class="name">Loan detail (return action)</div><div class="pat">Pattern 15 — Approval/status workflow</div></a>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>Reference Data</h2>
+    <div class="cards">
+      <a class="card" href="ref-item-category.html"><div class="name">Item Categories</div><div class="pat">Pattern 18 — Simple lookup table</div></a>
+      <a class="card" href="ref-loan-status.html"><div class="name">Loan Statuses</div><div class="pat">Pattern 18 — Simple lookup table</div></a>
+    </div>
+  </div>
+
+</div>
+<div class="foot">LoanTracker — design/ui-spec/index.html · 2026-09-19 · Stage ③ · Podium 2 Pilot Internal</div>
+</body>
+</html>

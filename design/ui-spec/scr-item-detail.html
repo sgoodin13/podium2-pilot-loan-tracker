@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — Item Detail</title>
+<link rel="stylesheet" href="assets/mockups.css">
+</head>
+<body>
+<a href="#main" class="lt-skip-link">Skip to main content</a>
+<div class="lt-shell">
+  <nav class="lt-sidenav" aria-label="Primary">
+    <div class="brand">LoanTracker</div>
+    <a href="scr-item-list.html" class="active">Items</a>
+    <a href="scr-borrower-list.html">Borrowers</a>
+    <a href="scr-checkout-wizard.html">Checkout</a>
+    <a href="scr-loan-list.html">Loans</a>
+    <a href="ref-item-category.html">Item Categories</a>
+    <a href="ref-loan-status.html">Loan Statuses</a>
+  </nav>
+  <main id="main" class="lt-main">
+    <div class="lt-breadcrumb">Items &gt; DRL-0114</div>
+    <div class="lt-toolbar">
+      <h1>Cordless Drill <span style="font-size:14px;color:#5b6472;font-weight:400">DRL-0114</span></h1>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="lt-chip lt-chip-onloan">On loan</span>
+        <button class="lt-btn lt-btn-secondary">Edit</button>
+        <button class="lt-btn lt-btn-danger" disabled title="Item has an open loan">Retire</button>
+      </div>
+    </div>
+
+    <div class="lt-card">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 20px">
+        <div><div style="font-size:11px;color:#8a93a3">Category</div><div>Power Tools</div></div>
+        <div><div style="font-size:11px;color:#8a93a3">Asset tag</div><div>DRL-0114</div></div>
+        <div><div style="font-size:11px;color:#8a93a3">Status</div><div>Active</div></div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#8a5a0a;background:#fdf3e0;padding:8px 10px;border-radius:4px">Retire is disabled — this item has an open loan to J. Alvarez. Return it first.</div>
+    </div>
+
+    <div class="lt-card">
+      <h3 style="font-size:13px;margin-bottom:10px">Loan history</h3>
+      <table class="lt-table">
+        <thead><tr><th>Borrower</th><th>Checked out</th><th>Returned</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>J. Alvarez</td><td>2026-09-15</td><td>—</td><td><span class="lt-chip lt-chip-onloan">Checked Out</span></td></tr>
+          <tr><td>T. Okonkwo</td><td>2026-08-02</td><td>2026-08-09</td><td><span class="lt-chip lt-chip-terminal">Returned</span></td></tr>
+          <tr><td>R. Chen</td><td>2026-06-11</td><td>2026-06-14</td><td><span class="lt-chip lt-chip-terminal">Returned</span></td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:#8a93a3;margin-top:8px">Showing 3 of 3 loans for this item</div>
+    </div>
+    <p class="lt-a11y-note">Pattern 12 (One-to-many list) — parent card (Item) + read-only child grid (this item's Loans). This is the screen that must show, at a glance, who has the item right now and since when (BR §1).</p>
+  </main>
+</div>
+</body>
+</html>

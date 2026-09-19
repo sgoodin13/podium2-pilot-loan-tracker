@@ -1,0 +1,78 @@
+/* LoanTracker — assets/mockups.css
+   Shared design tokens + mockup styles for design/ui-spec/.
+   Source: LoanTracker_UI_Standard.md — control library = Angular Material.
+   These mockups evoke Material's visual language (elevation, riplearress buttons,
+   floating-ish labels) using plain CSS — build-time implementation uses real
+   Angular Material components against these same tokens. */
+
+:root {
+  --navy: #1a4d8f; --navy-dark: #0f3866;
+  --accent: #2563a8; --accent-light: #eaf1fb;
+  --page: #f4f6f9; --card: #ffffff; --surface-2: #f9fafb; --border: #e1e5ea;
+  --ink: #1f2937; --mid: #5b6472; --muted: #8a93a3;
+  --good: #1e8449; --fair: #f0b429; --poor: #d64545; --unknown: #9aa5b1;
+  --radius-card: 8px; --radius-ctl: 4px;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--page); color: var(--ink); margin: 0; font-size: 14px; line-height: 1.5;
+}
+.lt-shell { display: flex; min-height: 100vh; }
+.lt-sidenav {
+  width: 220px; background: var(--navy-dark); color: #fff; flex-shrink: 0; padding: 16px 0;
+}
+.lt-sidenav .brand { font-weight: 600; font-size: 16px; padding: 0 20px 16px; border-bottom: 1px solid rgba(255,255,255,.12); margin-bottom: 8px; }
+.lt-sidenav a {
+  display: block; padding: 10px 20px; color: rgba(255,255,255,.82); text-decoration: none; font-size: 13.5px;
+}
+.lt-sidenav a.active { background: rgba(255,255,255,.10); color: #fff; font-weight: 600; border-left: 3px solid #fff; padding-left: 17px; }
+.lt-main { flex: 1; padding: 24px 32px; max-width: 1040px; }
+.lt-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.lt-toolbar h1 { font-size: 22px; font-weight: 600; color: var(--ink); }
+.lt-breadcrumb { font-size: 12px; color: var(--mid); margin-bottom: 4px; }
+.lt-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: 0 1px 3px rgba(0,0,0,.06); padding: 20px 22px; margin-bottom: 16px; }
+.lt-btn {
+  font-family: inherit; font-size: 13.5px; font-weight: 600; border-radius: var(--radius-ctl);
+  padding: 9px 18px; cursor: pointer; border: none; letter-spacing: .01em;
+}
+.lt-btn-primary { background: var(--navy); color: #fff; }
+.lt-btn-secondary { background: #fff; color: var(--navy); border: 1.5px solid var(--navy); }
+.lt-btn-danger { background: #fff; color: var(--poor); border: 1.5px solid var(--poor); }
+.lt-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.lt-field { margin-bottom: 14px; }
+.lt-field label { display: block; font-size: 12px; color: var(--mid); margin-bottom: 4px; font-weight: 500; }
+.lt-field label .req { color: var(--poor); }
+.lt-field input, .lt-field select, .lt-field textarea {
+  width: 100%; font-family: inherit; font-size: 13.5px; padding: 9px 11px; border: 1px solid var(--border);
+  border-radius: var(--radius-ctl); background: #fff; color: var(--ink); outline: none;
+}
+.lt-field input:focus, .lt-field select:focus { border-color: var(--navy); box-shadow: 0 0 0 3px var(--accent-light); }
+.lt-field .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.lt-field .error { font-size: 11px; color: var(--poor); margin-top: 3px; }
+table.lt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.lt-table th { text-align: left; padding: 10px 12px; font-size: 11.5px; font-weight: 600; color: var(--mid); background: var(--surface-2); border-bottom: 1px solid var(--border); }
+table.lt-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+table.lt-table tbody tr:hover td { background: var(--surface-2); cursor: pointer; }
+.lt-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 12px; }
+.lt-chip-available { background: #e6f4ea; color: var(--good); }
+.lt-chip-onloan { background: var(--accent-light); color: var(--navy); }
+.lt-chip-terminal { background: var(--surface-2); color: var(--mid); }
+.lt-chip-warn { background: #fdf3e0; color: #8a5a0a; }
+.lt-chip-danger { background: #fbe9e9; color: var(--poor); }
+.lt-empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.lt-toolbar-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+.lt-search { flex: 1; max-width: 280px; }
+.lt-stepper { display: flex; align-items: center; margin-bottom: 20px; }
+.lt-step { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
+.lt-step .dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+.lt-step.done .dot { background: var(--navy); color: #fff; }
+.lt-step.active .dot { background: var(--accent-light); color: var(--navy); border: 2px solid var(--navy); }
+.lt-step.todo .dot { background: #fff; color: var(--muted); border: 1px solid var(--border); }
+.lt-step .lbl { font-size: 11px; font-weight: 600; color: var(--mid); }
+.lt-step.active .lbl { color: var(--navy); }
+.lt-connector { flex: 1; height: 1px; background: var(--border); margin-bottom: 22px; }
+.lt-connector.done { background: var(--navy); }
+.lt-skip-link { position: absolute; left: -999px; top: 0; background: var(--navy); color: #fff; padding: 8px 14px; z-index: 100; }
+.lt-skip-link:focus { left: 8px; top: 8px; }
+.lt-a11y-note { font-size: 11px; color: var(--muted); margin-top: 6px; }

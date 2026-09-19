@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — Add Borrower</title>
+<link rel="stylesheet" href="assets/mockups.css">
+</head>
+<body>
+<a href="#main" class="lt-skip-link">Skip to main content</a>
+<div class="lt-shell">
+  <nav class="lt-sidenav" aria-label="Primary">
+    <div class="brand">LoanTracker</div>
+    <a href="scr-item-list.html">Items</a>
+    <a href="scr-borrower-list.html" class="active">Borrowers</a>
+    <a href="scr-checkout-wizard.html">Checkout</a>
+    <a href="scr-loan-list.html">Loans</a>
+    <a href="ref-item-category.html">Item Categories</a>
+    <a href="ref-loan-status.html">Loan Statuses</a>
+  </nav>
+  <main id="main" class="lt-main">
+    <div class="lt-breadcrumb">Borrowers &gt; Add</div>
+    <div class="lt-toolbar">
+      <h1>Add borrower</h1>
+      <div style="display:flex;gap:8px"><button class="lt-btn lt-btn-secondary">Cancel</button><button class="lt-btn lt-btn-primary">Save</button></div>
+    </div>
+    <div class="lt-card" style="max-width:520px">
+      <div class="lt-field"><label for="b-name">Name <span class="req">*</span></label><input id="b-name" type="text" placeholder="Full name"></div>
+      <div class="lt-field"><label for="b-email">Contact email</label><input id="b-email" type="email" placeholder="name@example.org"></div>
+      <div class="lt-field"><label for="b-phone">Contact phone</label><input id="b-phone" type="tel" placeholder="Optional"></div>
+      <div class="lt-field"><label for="b-dept">Department / group</label><input id="b-dept" type="text" placeholder="Optional, free text"></div>
+    </div>
+    <p class="lt-a11y-note">Pattern 04 (Single record form). Only Name is required — contact fields are optional per the BRs.</p>
+  </main>
+</div>
+</body>
+</html>

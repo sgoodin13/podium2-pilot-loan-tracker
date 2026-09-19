@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — Loan Detail</title>
+<link rel="stylesheet" href="assets/mockups.css">
+</head>
+<body>
+<a href="#main" class="lt-skip-link">Skip to main content</a>
+<div class="lt-shell">
+  <nav class="lt-sidenav" aria-label="Primary">
+    <div class="brand">LoanTracker</div>
+    <a href="scr-item-list.html">Items</a>
+    <a href="scr-borrower-list.html">Borrowers</a>
+    <a href="scr-checkout-wizard.html">Checkout</a>
+    <a href="scr-loan-list.html" class="active">Loans</a>
+    <a href="ref-item-category.html">Item Categories</a>
+    <a href="ref-loan-status.html">Loan Statuses</a>
+  </nav>
+  <main id="main" class="lt-main">
+    <div class="lt-breadcrumb">Loans &gt; Cordless Drill (DRL-0114) — J. Alvarez</div>
+    <div class="lt-toolbar"><h1>Loan detail</h1></div>
+
+    <div class="lt-card">
+      <div class="lt-stepper" role="group" aria-label="Loan status">
+        <div class="lt-step done"><div class="dot">&#10003;</div><div class="lbl">Checked Out</div></div>
+        <div class="lt-connector"></div>
+        <div class="lt-step todo"><div class="dot">?</div><div class="lbl">Returned / Lost / Damaged</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 20px;margin-bottom:14px">
+        <div><div style="font-size:11px;color:#8a93a3">Item</div><div>Cordless Drill (DRL-0114)</div></div>
+        <div><div style="font-size:11px;color:#8a93a3">Borrower</div><div>J. Alvarez</div></div>
+        <div><div style="font-size:11px;color:#8a93a3">Checked out</div><div>2026-09-15 10:32</div></div>
+      </div>
+      <div style="padding:10px 12px;background:#eaf1fb;border-radius:4px;margin-bottom:12px"><strong style="color:#0f3866">Status: Checked Out</strong> — <span style="color:#3a6ea8">not yet returned</span></div>
+      <button class="lt-btn lt-btn-primary">Return this item</button>
+    </div>
+
+    <div class="lt-card" style="border-left:3px solid #1a4d8f">
+      <h3 style="font-size:13px;margin-bottom:10px">Return panel (shown after "Return this item" is selected)</h3>
+      <div class="lt-field" style="max-width:320px">
+        <label for="r-status">Resulting status <span class="req">*</span></label>
+        <select id="r-status">
+          <option value="">Select a terminal status…</option>
+          <option>Returned</option>
+          <option>Lost</option>
+          <option>Damaged</option>
+        </select>
+        <div class="hint">Only terminal statuses (Is Terminal = true) appear here — a non-terminal status cannot close a loan.</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="lt-btn lt-btn-secondary">Cancel</button><button class="lt-btn lt-btn-primary" disabled>Confirm return</button></div>
+    </div>
+    <p class="lt-a11y-note">Pattern 15 (Approval/status workflow), adapted to Loan's two-state lifecycle. The Return action is the loan's one state transition, gated to terminal statuses only — BR §6.</p>
+  </main>
+</div>
+</body>
+</html>

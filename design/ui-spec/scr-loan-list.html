@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — Loans</title>
+<link rel="stylesheet" href="assets/mockups.css">
+</head>
+<body>
+<a href="#main" class="lt-skip-link">Skip to main content</a>
+<div class="lt-shell">
+  <nav class="lt-sidenav" aria-label="Primary">
+    <div class="brand">LoanTracker</div>
+    <a href="scr-item-list.html">Items</a>
+    <a href="scr-borrower-list.html">Borrowers</a>
+    <a href="scr-checkout-wizard.html">Checkout</a>
+    <a href="scr-loan-list.html" class="active">Loans</a>
+    <a href="ref-item-category.html">Item Categories</a>
+    <a href="ref-loan-status.html">Loan Statuses</a>
+  </nav>
+  <main id="main" class="lt-main">
+    <div class="lt-breadcrumb">Loans</div>
+    <div class="lt-toolbar"><h1>Loans</h1></div>
+    <div class="lt-card">
+      <div class="lt-toolbar-row">
+        <div class="lt-search"><input type="search" placeholder="Search by item or borrower…" aria-label="Search loans"></div>
+        <select aria-label="Filter by status"><option>All</option><option>Open</option><option>Closed</option></select>
+        <select aria-label="Filter by borrower"><option>All borrowers</option></select>
+        <select aria-label="Filter by item"><option>All items</option></select>
+      </div>
+      <table class="lt-table">
+        <thead><tr><th>Item</th><th>Borrower</th><th>Checked out</th><th>Returned</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Cordless Drill (DRL-0114)</td><td>J. Alvarez</td><td>2026-09-15</td><td>—</td><td><span class="lt-chip lt-chip-onloan">Checked Out</span></td></tr>
+          <tr><td>Cordless Drill (DRL-0115)</td><td>R. Chen</td><td>2026-09-12</td><td>—</td><td><span class="lt-chip lt-chip-onloan">Checked Out</span></td></tr>
+          <tr><td>DSLR Camera Kit (CAM-0003)</td><td>T. Okonkwo</td><td>2026-07-01</td><td>2026-07-05</td><td><span class="lt-chip lt-chip-terminal">Returned</span></td></tr>
+          <tr><td>Digital Microscope (MIC-0007)</td><td>M. Petrov</td><td>2026-06-20</td><td>2026-06-25</td><td><span class="lt-chip lt-chip-danger">Damaged</span></td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:#8a93a3;margin-top:10px">Showing 4 of 61 loans</div>
+    </div>
+    <p class="lt-a11y-note">Pattern 08 (Simple flat grid). Row click opens the Loan detail (Pattern 15) for the return action.</p>
+  </main>
+</div>
+</body>
+</html>

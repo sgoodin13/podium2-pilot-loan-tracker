@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoanTracker — Items</title>
+<link rel="stylesheet" href="assets/mockups.css">
+</head>
+<body>
+<a href="#main" class="lt-skip-link">Skip to main content</a>
+<div class="lt-shell">
+  <nav class="lt-sidenav" aria-label="Primary">
+    <div class="brand">LoanTracker</div>
+    <a href="scr-item-list.html" class="active">Items</a>
+    <a href="scr-borrower-list.html">Borrowers</a>
+    <a href="scr-checkout-wizard.html">Checkout</a>
+    <a href="scr-loan-list.html">Loans</a>
+    <a href="ref-item-category.html">Item Categories</a>
+    <a href="ref-loan-status.html">Loan Statuses</a>
+  </nav>
+  <main id="main" class="lt-main">
+    <div class="lt-breadcrumb">Items</div>
+    <div class="lt-toolbar">
+      <h1>Items</h1>
+      <button class="lt-btn lt-btn-primary" aria-label="Add item">+ Add item</button>
+    </div>
+    <div class="lt-card">
+      <div class="lt-toolbar-row">
+        <div class="lt-search"><input type="search" placeholder="Search items…" aria-label="Search items"></div>
+        <select aria-label="Filter by category"><option>All categories</option><option>Power Tools</option><option>AV Equipment</option><option>Lab Equipment</option></select>
+        <select aria-label="Filter by availability"><option>All items</option><option>Available</option><option>On loan</option></select>
+      </div>
+      <table class="lt-table">
+        <thead><tr><th>Asset tag</th><th>Name</th><th>Category</th><th>Availability</th><th>Current borrower</th></tr></thead>
+        <tbody>
+          <tr><td>DRL-0114</td><td>Cordless Drill</td><td>Power Tools</td><td><span class="lt-chip lt-chip-onloan">On loan</span></td><td>J. Alvarez</td></tr>
+          <tr><td>PRJ-0022</td><td>Epson Projector</td><td>AV Equipment</td><td><span class="lt-chip lt-chip-available">Available</span></td><td>—</td></tr>
+          <tr><td>MIC-0007</td><td>Digital Microscope</td><td>Lab Equipment</td><td><span class="lt-chip lt-chip-available">Available</span></td><td>—</td></tr>
+          <tr><td>DRL-0115</td><td>Cordless Drill</td><td>Power Tools</td><td><span class="lt-chip lt-chip-onloan">On loan</span></td><td>R. Chen</td></tr>
+          <tr><td>CAM-0003</td><td>DSLR Camera Kit</td><td>AV Equipment</td><td><span class="lt-chip lt-chip-available">Available</span></td><td>—</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:#8a93a3;margin-top:10px">Showing 5 of 37 items</div>
+    </div>
+    <p class="lt-a11y-note">Pattern 08 (Simple flat grid). Availability chip is derived from open-loan state, never a stored field — see Physical Data Model. Row click opens Item detail; every action also reachable by keyboard (Tab to row, Enter to open).</p>
+  </main>
+</div>
+</body>
+</html>
