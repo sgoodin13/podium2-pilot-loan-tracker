@@ -134,8 +134,19 @@ export class CheckoutWizardComponent implements OnInit {
     this.loadItems();
   }
 
+  /**
+   * True only immediately after the user picks an item.
+   *
+   * Choosing destroys the "Select" button and creates "Selected ✓" in its place, so focus
+   * has to follow (Compliance N1). The flag exists because stepping back from step 3
+   * re-renders this row with the item still chosen — focus belongs on the step panel
+   * then, not on a button the user did not just press.
+   */
+  readonly justSelected = signal(false);
+
   selectItem(item: Item): void {
     this.selectedItem.set(item);
+    this.justSelected.set(true);
   }
 
   isSelected(item: Item): boolean {
@@ -169,6 +180,8 @@ export class CheckoutWizardComponent implements OnInit {
    */
   private markNavigated(): void {
     this.navigated.set(true);
+    // A step change means the next render of "Selected ✓" is not the user choosing.
+    this.justSelected.set(false);
   }
 
   next(): void {

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -12,7 +12,7 @@ import { Loan, LoanStatus, ProblemDetails } from '../../core/models/api.models';
 import { LoanService } from '../../core/services/loan.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ReferenceDataService } from '../../core/services/reference-data.service';
-import { focusWhenRendered } from '../../shared/focus';
+import { FocusOnCreateDirective } from '../../shared/focus-on-create.directive';
 
 /**
  * Loan detail — `scr-loan-detail`, Pattern 15 (approval/status workflow adapted
@@ -35,6 +35,7 @@ import { focusWhenRendered } from '../../shared/focus';
     MatFormFieldModule,
     MatSelectModule,
     MatProgressSpinnerModule,
+    FocusOnCreateDirective,
   ],
   templateUrl: './loan-detail.component.html',
   styleUrl: './loan-detail.component.scss',
@@ -88,30 +89,30 @@ export class LoanDetailComponent implements OnInit {
   }
 
   /**
-   * Opening and cancelling both destroy the control that currently has focus, so
-   * both move it deliberately. Without this, focus falls back to `<body>` and a
-   * keyboard user has to Tab from the top of the document (Compliance finding F6;
-   * CLAUDE.md §Accessibility — "focus managed on every state change").
+   * True once the return panel has been opened at least once.
+   *
+   * The trigger button is present on first paint for any open loan, so focusing it
+   * unconditionally would steal focus on page load. It should only take focus back when
+   * it reappears after the panel closes (Compliance finding F6).
    */
-  @ViewChild('returnPanelHeading') private returnPanelHeading?: ElementRef<HTMLElement>;
-  @ViewChild('returnTrigger', { read: ElementRef })
-  private returnTrigger?: ElementRef<HTMLElement>;
+  readonly returnPanelWasOpen = signal(false);
 
+  /**
+   * Opening and cancelling each destroy the control that currently has focus, so each
+   * moves it. Both moves are bound to the target element's own lifecycle via
+   * `ltFocusOnCreate` rather than driven from here — see that directive for why driving
+   * focus from the component silently failed three times.
+   */
   openReturnPanel(): void {
     this.returnPanelOpen.set(true);
     this.returnError.set(null);
-
-    // The panel replaces the trigger in the DOM, so wait for the render.
-    focusWhenRendered(() => this.returnPanelHeading);
+    this.returnPanelWasOpen.set(true);
   }
 
   cancelReturn(): void {
     this.returnPanelOpen.set(false);
     this.selectedStatusId.set('');
     this.returnError.set(null);
-
-    // Back to the control the user came from.
-    focusWhenRendered(() => this.returnTrigger);
   }
 
   confirmReturn(): void {

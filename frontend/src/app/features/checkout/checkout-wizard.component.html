@@ -160,11 +160,19 @@
           </th>
           <td mat-cell *matCellDef="let item">
             @if (isSelected(item)) {
+              <!--
+                Bound, not bare: stepping back from step 3 re-renders this row with the
+                item still selected, and a bare directive would then steal focus from the
+                step panel. It fires only when the user has just chosen (Compliance N1).
+                Its own testid distinguishes it from the Select button — they shared one,
+                which is why every existing spec sailed past this focus loss.
+              -->
               <button
                 mat-flat-button
                 color="primary"
+                [ltFocusOnCreate]="justSelected()"
                 [attr.aria-label]="'Selected ' + item.name + ' ' + item.assetTag"
-                [attr.data-testid]="'checkout-step2-select-' + item.assetTag"
+                [attr.data-testid]="'checkout-step2-selected-' + item.assetTag"
               >
                 Selected ✓
               </button>

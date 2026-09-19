@@ -44,6 +44,14 @@ dotnet user-secrets set "ConnectionStrings:LoanTracker" \
 Both steps fail loudly rather than silently if you skip them: `docker compose` refuses
 to start without `.env`, and the API throws a named error on boot without the secret.
 
+> **Running the test suites while the app is running.** `dotnet test` fails to rebuild
+> while `dotnet run` holds `Api.exe` *and* `Api.dll` — `-p:UseAppHost=false` is not
+> enough. Redirect the build out of the locked tree instead:
+> `dotnet test Api.Tests/Api.Tests.csproj -o "$env:TEMP/lt-verify"`.
+> For Playwright, note that `ng build` writes `dist/` and does **not** wait for
+> `ng serve` to finish recompiling — a run started too soon fails against a stale
+> bundle with errors that look like real defects.
+
 > **If you cloned this repo before the credential was moved out**, the old password is
 > still in git history and your existing Postgres volume was created with it. Changing
 > `.env` alone does not change the running database's password — drop the volume once:

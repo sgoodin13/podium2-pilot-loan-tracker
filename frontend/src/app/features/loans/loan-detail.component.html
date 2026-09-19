@@ -74,7 +74,7 @@
   @if (l.isOpen) {
     @if (!returnPanelOpen()) {
       <button
-        #returnTrigger
+        [ltFocusOnCreate]="returnPanelWasOpen()"
         mat-flat-button
         color="primary"
         (click)="openReturnPanel()"
@@ -93,7 +93,7 @@
           specific as the reversible retire/deactivate ones (Compliance finding F8).
           tabindex="-1" makes it a focus target without adding it to the Tab order.
         -->
-        <h3 #returnPanelHeading tabindex="-1" data-testid="loan-return-heading">
+        <h3 ltFocusOnCreate tabindex="-1" data-testid="loan-return-heading">
           Return {{ l.itemName }} ({{ l.itemAssetTag }})?
         </h3>
 

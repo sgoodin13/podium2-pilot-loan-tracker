@@ -29,7 +29,7 @@ import {
 } from '../../shared/confirm-dialog.component';
 import { EmptyStateComponent } from '../../shared/empty-state.component';
 import { GuardBannerComponent } from '../../shared/guard-banner.component';
-import { focusWhenRendered } from '../../shared/focus';
+import { FocusOnCreateDirective } from '../../shared/focus-on-create.directive';
 
 /**
  * Borrower detail — REQ-2.3, `scr-borrower-detail`, Pattern 12 (one-to-many list).
@@ -57,6 +57,7 @@ import { focusWhenRendered } from '../../shared/focus';
     MatDialogModule,
     EmptyStateComponent,
     GuardBannerComponent,
+    FocusOnCreateDirective,
   ],
   templateUrl: './borrower-detail.component.html',
   styles: [
@@ -191,15 +192,23 @@ export class BorrowerDetailComponent implements OnInit {
     });
     this.saveError.set(null);
     this.editing.set(true);
-
-    // Focus moves into the newly revealed form rather than being left behind on
-    // a button that is no longer on screen.
-    focusWhenRendered(() => this.editNameInput);
+    // Focus into the revealed form is handled by `ltFocusOnCreate` on the name input.
   }
+
+  /**
+   * True once an edit session has ended, so the Edit button can take focus back when the
+   * read-only view returns without stealing it on first paint (Compliance N3).
+   */
+  readonly editSessionEnded = signal(false);
 
   cancelEdit(): void {
     this.editing.set(false);
     this.saveError.set(null);
+
+    // Leaving edit mode destroys the Cancel button the user just pressed. Focus
+    // returns to the control they came from, mirroring loan-detail's return panel —
+    // which got both directions while this screen originally got only the entry.
+    this.editSessionEnded.set(true);
   }
 
   saveEdit(): void {
@@ -227,6 +236,7 @@ export class BorrowerDetailComponent implements OnInit {
         this.borrower.set(updated);
         this.saving.set(false);
         this.editing.set(false);
+        this.editSessionEnded.set(true);
         this.notifications.success(`Borrower saved — ${updated.name}.`);
       },
       error: (problem: ProblemDetails) => {

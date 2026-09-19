@@ -1,9 +1,18 @@
 import { ElementRef } from '@angular/core';
 
 /**
- * Moves focus onto an element that a state change has just created.
+ * Moves focus onto an element that already exists but has just become focusable.
  *
  * @remarks
+ * **Prefer `ltFocusOnCreate`.** If the target is *created* by the state change — which is
+ * almost always the case — use that directive instead: it binds focus to the element's own
+ * lifecycle and has no timing assumption to get wrong.
+ *
+ * This helper remains for the one case the directive cannot serve: a target that is never
+ * destroyed and only re-enabled. The item-detail Edit button is disabled during edit rather
+ * than removed, so no element is created when edit mode ends, and a disabled element cannot
+ * take focus until change detection has processed the flag.
+ *
  * Use this rather than `queueMicrotask`. Angular schedules change detection on the
  * microtask queue, so a focus call queued as a microtask races the render that creates
  * the target — and loses. The `@ViewChild` is then still `undefined`, or still points at

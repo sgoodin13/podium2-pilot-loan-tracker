@@ -127,4 +127,71 @@ test.describe('Focus management on destructive state changes', () => {
 
     await expect(testId(page, 'item-edit-name')).toBeFocused();
   });
+
+  /**
+   * Selecting an item destroys the "Select" button and creates "Selected ✓" in its place.
+   * Both buttons shared one `data-testid` until this was found, so every existing spec
+   * resolved the selector to the replacement and sailed straight past the focus loss —
+   * the attribute that made the flow testable was the same thing hiding the defect.
+   */
+  test('choosing an item in step 2 keeps focus on the replacement control', async ({
+    page,
+    request,
+  }) => {
+    const category = await firstCategory(request);
+    const assetTag = unique('QA-FOCUSSEL');
+    await createItem(request, category.id, assetTag, `QA Focus Select ${assetTag}`);
+    const borrower = await createBorrower(request, unique('QA Focus Select Borrower'));
+
+    await page.goto('/checkout');
+    await selectBorrowerOption(page, borrower.name);
+    await testId(page, 'checkout-next-to-item').click();
+
+    await testId(page, 'checkout-item-search').fill(assetTag);
+    await testId(page, `checkout-step2-select-${assetTag}`).click();
+
+    await expect(testId(page, `checkout-step2-selected-${assetTag}`)).toBeFocused();
+
+    // And stepping back from confirm must NOT re-steal focus onto that button — the
+    // item is still chosen, but the user did not just choose it.
+    await testId(page, 'checkout-next-to-confirm').click();
+    await expect(testId(page, 'checkout-step-3')).toBeFocused();
+
+    await page.getByRole('button', { name: '← Back' }).click();
+    await expect(testId(page, 'checkout-step-2')).toBeFocused();
+  });
+
+  /**
+   * Leaving edit mode is the mirror of entering it, and was missed on both detail
+   * screens — `loan-detail` got open *and* cancel, these two got only the entry.
+   */
+  test('leaving item edit mode returns focus to the Edit button', async ({ page, request }) => {
+    const category = await firstCategory(request);
+    const assetTag = unique('QA-FOCUSEXIT');
+    const item = await createItem(request, category.id, assetTag, `QA Focus Exit ${assetTag}`);
+
+    await page.goto(`/items/${item.id}`);
+
+    await testId(page, 'item-edit-btn').click();
+    await expect(testId(page, 'item-edit-name')).toBeFocused();
+
+    // Pristine form — cancels without the discard dialog.
+    await page.getByRole('button', { name: 'Cancel' }).click();
+
+    await expect(testId(page, 'item-edit-btn')).toBeFocused();
+  });
+
+  test('entering and leaving borrower edit mode both move focus', async ({ page, request }) => {
+    const borrower = await createBorrower(request, unique('QA Focus Borrower Edit'));
+
+    await page.goto(`/borrowers/${borrower.id}`);
+
+    // Entry was fixed early and went three rounds with no assertion covering it.
+    await testId(page, 'borrower-edit-btn').click();
+    await expect(testId(page, 'borrower-edit-name')).toBeFocused();
+
+    await page.getByRole('button', { name: 'Cancel' }).click();
+
+    await expect(testId(page, 'borrower-edit-btn')).toBeFocused();
+  });
 });

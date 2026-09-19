@@ -19,6 +19,7 @@ import {
   ConfirmDialogData,
 } from '../../shared/confirm-dialog.component';
 import { EmptyStateComponent } from '../../shared/empty-state.component';
+import { FocusOnCreateDirective } from '../../shared/focus-on-create.directive';
 import { focusWhenRendered } from '../../shared/focus';
 import { GuardBannerComponent } from '../../shared/guard-banner.component';
 
@@ -51,6 +52,7 @@ import { GuardBannerComponent } from '../../shared/guard-banner.component';
     MatProgressSpinnerModule,
     EmptyStateComponent,
     GuardBannerComponent,
+    FocusOnCreateDirective,
   ],
   templateUrl: './item-detail.component.html',
   styleUrl: './item-form.scss',
@@ -144,17 +146,35 @@ export class ItemDetailComponent implements OnInit {
     this.assetTagServerError.set(null);
     this.editing.set(true);
 
-    // Entering edit mode replaces the read-only view with the form, so focus is
-    // moved into it deliberately — matching borrower-detail, which already did
-    // this (Compliance finding F6).
-    focusWhenRendered(() => this.editNameInput);
+    // Entering edit mode replaces the read-only view with the form. Focus into the
+    // name input is handled by `ltFocusOnCreate` on the element itself.
   }
 
-  @ViewChild('editNameInput') private editNameInput?: ElementRef<HTMLInputElement>;
+  /** The Edit button, which is disabled during edit rather than removed. */
+  @ViewChild('editButton', { read: ElementRef }) private editButton?: ElementRef<HTMLElement>;
+
+  /**
+   * Leaving edit mode destroys the whole form, including the Cancel button the user just
+   * pressed, and focus falls to `<body>` (Compliance N2).
+   *
+   * Unlike every other case on this screen the target is not newly created — the Edit
+   * button stays in the DOM throughout and is only re-enabled — so `ltFocusOnCreate` does
+   * not apply and the move is made here. It is deferred because a disabled element cannot
+   * take focus: the button is still disabled until change detection processes
+   * `editing.set(false)`.
+   *
+   * The dirty branch needs it most. That dialog sets `restoreFocus: true`, so focus is
+   * handed back to the Cancel button and *then* that button is destroyed, landing on a
+   * detached node.
+   */
+  private focusEditButton(): void {
+    focusWhenRendered(() => this.editButton);
+  }
 
   cancelEdit(): void {
     if (!this.form.dirty) {
       this.editing.set(false);
+      this.focusEditButton();
       return;
     }
 
@@ -175,6 +195,7 @@ export class ItemDetailComponent implements OnInit {
         if (confirmed) {
           this.form.markAsPristine();
           this.editing.set(false);
+          this.focusEditButton();
         }
       });
   }
@@ -204,6 +225,7 @@ export class ItemDetailComponent implements OnInit {
           this.form.markAsPristine();
           this.item.set(updated);
           this.editing.set(false);
+          this.focusEditButton();
           this.notifications.success(`Item saved — ${updated.name} (${updated.assetTag}).`);
         },
         error: (problem: ProblemDetails) => {

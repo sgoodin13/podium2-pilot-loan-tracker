@@ -306,6 +306,29 @@ that is known is the tests — which is the finding worth carrying: **an a11y fi
 `toBeFocused()` assertion is an unverified claim**, and the green axe run says nothing
 about it either way.
 
+### Re-verification round 3 — three more instances of the same class
+
+The audit confirmed F5 and the F6 rejection path were properly closed (it attacked both
+and could not reopen either), and confirmed F12's correction. It then found **three more
+focus losses of the same class**, none covered by the four new specs:
+
+| # | Defect | Fix |
+|---|---|---|
+| **N1** | Choosing an item in step 2 destroys the "Select" button and creates "Selected ✓" — focus fell to `<body>` mid-wizard. **Both buttons shared one `data-testid`**, so every spec, including the new focus spec that clicks exactly this control, resolved to the replacement and sailed past. The attribute that made the flow testable was what hid the defect. | Distinct testid on the selected state, plus `[ltFocusOnCreate]="justSelected()"` — bound, because stepping back from confirm re-renders the row with the item still chosen and a bare directive would steal focus from the step panel. |
+| **N2** | Leaving item edit mode dropped focus to `<body>`. The dirty branch was worse: the discard dialog's `restoreFocus: true` handed focus back to Cancel and *then* destroyed it, landing on a detached node. | Focus returns to the Edit button from `cancelEdit` (both branches) and the save success path. |
+| **N3** | Same on borrower detail. `loan-detail` had got **both** directions; the two detail screens got only the entry. The symmetric half was never written. | `[ltFocusOnCreate]="editSessionEnded()"` on the Edit button. |
+
+**The two mechanisms were collapsed to one**, as recommended. All four remaining
+`focusWhenRendered` call sites were "element newly created inside an `@if`" — precisely
+what the directive exists for — so keeping a second mechanism only preserved the failure
+mode that had already bitten twice. One legitimate caller remains and is documented as
+such: item-detail's Edit button is *disabled* during edit rather than removed, so nothing
+is created when edit mode ends and the directive cannot apply.
+
+**Verification now covers the class, not the instances:** 7 focus specs asserting
+`toBeFocused()` on every transition, including the borrower-entry case that had gone
+three rounds unasserted on the strength of "it already worked."
+
 ### One process note, recorded because it nearly caused a false conclusion
 
 Two Playwright runs in this session produced failures that were **not** code defects: the
@@ -314,7 +337,24 @@ Angular dev server had died in one case, and was still recompiling in the other
 reading was "the change broke it." Re-running after confirming the server state is the
 correct discipline; reporting the passing retry without stating why it was retried is not.
 
-### Carried for the Orchestrator (3)
+### Orchestrator rulings — all five carried items closed (post-Gate-4)
+
+Ruled and recorded by the Orchestrator directly in `trigger_spec_LoanTracker.md` §4 as
+authorized Pre-Build corrections — verified present on disk at lines 146–150. That is the
+artifact the Standards Guide designates, which closes finding F11 at the same time.
+
+| Item | Ruling |
+|---|---|
+| **C4 / C5** (F4, F13) | **N/A.** Single-language product (en-US, no RTL) per `LoanTracker_UI_Standard.md`; audit columns already `timestamptz`/UTC-aware. Disproportionate scope for a methodology pilot. |
+| **CI pipeline vs Standard #13** (F10) | **Accepted gap, not fixed.** One-off pilot with no ongoing team needing continuous enforcement. A11y genuinely verified via scripted axe runs (20 scans, 0 violations), which satisfies the intent without a CI gate. |
+| **C1 / C2 / C7 recording** (F11) | Now recorded in the trigger spec where §9 requires it. No change to what was built. Developer was correct not to self-edit a delivered artifact. |
+| **SonarQube / SonarCloud** | **Declined.** That Compliance checklist line stays unexecuted **by explicit decision, not omission** — an important distinction for the audit record. |
+| **Committed password in history** (`32d526f`) | **Accepted as-is.** Throwaway local credential; not rotated, history not rewritten. Already removed from the current working state (user-secrets + gitignored `.env`). |
+
+The three items below are the original carry list, retained for the record of *why* each
+was escalated rather than decided by Developer.
+
+### Carried for the Orchestrator (3) — all now ruled above
 
 | # | Finding | Why Developer did not act |
 |---|---|---|
@@ -340,7 +380,7 @@ not be carried as silently satisfied.
 | `dotnet build` / `ng build` | clean, 0 warnings |
 | Backend (xUnit + Testcontainers) | **101 passed, 0 failed** — 92 before, +9 new F2/F5 guard tests |
 | Frontend unit (Jasmine/Karma) | **29 passed, 0 failed** |
-| E2E + a11y (Playwright, headed, single worker) | **39 passed, 0 failed**; 39 skipped by project guard — 35 before, +4 new focus-management specs |
+| E2E + a11y (Playwright, headed, single worker) | **42 passed, 0 failed**; 42 skipped by project guard — 35 before, +7 new focus-management specs |
 | a11y scans | 18 desktop + 2 mobile, **0 WCAG 2.2 AA violations** — count unchanged after the F6/F8 markup changes |
 
 One honest note on that run: the first pass reported 13 failures. The cause was the

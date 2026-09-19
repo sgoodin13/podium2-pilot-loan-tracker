@@ -39,6 +39,7 @@
         [disabled]="editing() || retiring()"
         (click)="startEdit()"
         [attr.aria-label]="'Edit item ' + current.name"
+        #editButton
         data-testid="item-edit-btn"
       >
         Edit
@@ -123,7 +124,7 @@
               autocomplete="off"
               [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
               data-testid="item-edit-name"
-              #editNameInput
+              ltFocusOnCreate
             />
             @if (form.controls.name.hasError('required')) {
               <mat-error>Name is required.</mat-error>
