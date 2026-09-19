@@ -1,0 +1,29 @@
+// Item list — scr-item-list (Pattern 08). Layout primitives come from the global
+// stylesheet; only the filter-row sizing and the clickable-row affordance are
+// screen-local.
+
+.filter-search {
+  flex: 1 1 260px;
+  min-width: 200px;
+}
+
+.filter-select {
+  flex: 0 1 200px;
+  min-width: 160px;
+}
+
+// Rows are clickable AND keyboard-reachable (Tab to row, Enter opens) — the
+// mockup's a11y note. The focus ring must be visible, not just a hover tint.
+tr.item-row {
+  cursor: pointer;
+
+  &:hover {
+    background: var(--surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--navy);
+    outline-offset: -2px;
+    background: var(--accent-light);
+  }
+}

@@ -1,0 +1,23 @@
+.search-field {
+  width: 100%;
+  max-width: 280px;
+}
+
+.filter-field {
+  width: 100%;
+  max-width: 180px;
+}
+
+tr.clickable-row {
+  cursor: pointer;
+
+  &:hover {
+    background: var(--surface-2);
+  }
+
+  // Focus must be visible on the row itself, since the row is the control.
+  &:focus-visible {
+    outline: 2px solid var(--navy);
+    outline-offset: -2px;
+  }
+}

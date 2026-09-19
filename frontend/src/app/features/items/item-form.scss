@@ -1,0 +1,74 @@
+// Shared styling for the two Item form surfaces — the Add screen (scr-item-add,
+// Pattern 04) and the Detail screen's inline edit mode, which reuses the exact
+// same field set (one edit surface per aggregate, per the modeling standard).
+
+.full-width {
+  width: 100%;
+}
+
+// The required marker. Colour is never the sole signal: the asterisk is a glyph,
+// and every required control also carries the `required` attribute and an
+// explicit "… is required." message.
+.req {
+  color: var(--poor);
+  font-weight: 700;
+}
+
+.required-legend {
+  font-size: 11px;
+  color: var(--mid);
+  margin: 4px 0 0;
+}
+
+// --- Detail screen ---------------------------------------------------------
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+// The parent card's attribute grid is a description list: <dl> > <div> > dt/dd.
+// The default dd indent would break the grid column alignment.
+dl.lt-detail-grid {
+  margin: 0;
+
+  dd {
+    margin: 0;
+  }
+}
+
+.description-block {
+  margin-top: 16px;
+
+  .k {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--mid);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+
+  .v {
+    font-size: 13px;
+    white-space: pre-wrap;
+  }
+}
+
+.edit-heading {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.lt-breadcrumb a {
+  color: inherit;
+  text-decoration: underline;
+
+  &:focus-visible {
+    outline: 2px solid var(--navy);
+    outline-offset: 2px;
+  }
+}

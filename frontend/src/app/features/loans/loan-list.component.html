@@ -1,0 +1,160 @@
+<div class="lt-breadcrumb">Loans</div>
+
+<!-- No create button: a Loan is created only through the Checkout process. -->
+<div class="lt-toolbar">
+  <h1>Loans</h1>
+</div>
+
+<div class="lt-toolbar-row">
+  <mat-form-field class="search-field">
+    <mat-label>Search loans</mat-label>
+    <input
+      matInput
+      type="search"
+      placeholder="Search by item or borrower…"
+      [ngModel]="search()"
+      (ngModelChange)="onSearch($event)"
+      data-testid="loan-list-search"
+    />
+  </mat-form-field>
+
+  <mat-form-field class="filter-field">
+    <mat-label>Filter by status</mat-label>
+    <mat-select
+      [ngModel]="state()"
+      (ngModelChange)="state.set($event); applyFilters()"
+      data-testid="loan-filter-state"
+    >
+      <mat-option value="all">All</mat-option>
+      <mat-option value="open">Open</mat-option>
+      <mat-option value="closed">Closed</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="filter-field">
+    <mat-label>Filter by borrower</mat-label>
+    <mat-select
+      [ngModel]="borrowerId()"
+      (ngModelChange)="borrowerId.set($event); applyFilters()"
+      data-testid="loan-filter-borrower"
+    >
+      <mat-option value="">All borrowers</mat-option>
+      @for (b of borrowers(); track b.id) {
+        <mat-option [value]="b.id">{{ b.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="filter-field">
+    <mat-label>Filter by item</mat-label>
+    <mat-select
+      [ngModel]="itemId()"
+      (ngModelChange)="itemId.set($event); applyFilters()"
+      data-testid="loan-filter-item"
+    >
+      <mat-option value="">All items</mat-option>
+      @for (i of items(); track i.id) {
+        <mat-option [value]="i.id">{{ i.name }} ({{ i.assetTag }})</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
+
+<div class="lt-card">
+  @if (loading()) {
+    <app-skeleton-rows [rows]="5" [columns]="5" />
+    <span class="lt-sr-only" role="status">Loading loans</span>
+  } @else if (loadError()) {
+    <div class="lt-error-panel" role="alert" data-testid="loan-list-error">{{ loadError() }}</div>
+    <button mat-stroked-button (click)="load()">Try again</button>
+  } @else if (rows().length === 0) {
+    @if (hasActiveFilters) {
+      <app-empty-state
+        variant="no-results"
+        title="No results match your filters"
+        hint="Try widening the search or clearing a filter."
+        testId="loan-empty-filtered"
+        (clearFilters)="clearFilters()"
+      />
+    } @else {
+      <app-empty-state
+        variant="no-data"
+        title="No loans yet"
+        hint="Loans appear here once an item is checked out."
+        [showClear]="false"
+        testId="loan-empty-nodata"
+      />
+    }
+  } @else {
+    <table
+      mat-table
+      [dataSource]="rows()"
+      matSort
+      (matSortChange)="onSort($event)"
+      class="lt-table"
+      data-testid="loan-table"
+    >
+      <ng-container matColumnDef="item">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="itemName" scope="col">Item</th>
+        <td mat-cell *matCellDef="let loan">{{ loan.itemName }} ({{ loan.itemAssetTag }})</td>
+      </ng-container>
+
+      <ng-container matColumnDef="borrower">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="borrowerName" scope="col">Borrower</th>
+        <td mat-cell *matCellDef="let loan">{{ loan.borrowerName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="checkedOut">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="checkedOutAt" scope="col">
+          Checked out
+        </th>
+        <td mat-cell *matCellDef="let loan">{{ loan.checkedOutAt | date: 'yyyy-MM-dd' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="returned">
+        <th mat-header-cell *matHeaderCellDef scope="col">Returned</th>
+        <td mat-cell *matCellDef="let loan">
+          {{ loan.returnedAt ? (loan.returnedAt | date: 'yyyy-MM-dd') : '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef scope="col">Status</th>
+        <td mat-cell *matCellDef="let loan">
+          <span
+            class="lt-chip"
+            [class.lt-chip-onloan]="loan.isOpen"
+            [class.lt-chip-terminal]="!loan.isOpen"
+            [attr.data-testid]="'loan-status-chip'"
+          >
+            {{ loan.loanStatusName }}
+          </span>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        class="clickable-row"
+        tabindex="0"
+        [attr.aria-label]="'Open loan for ' + row.itemName + ' ' + row.itemAssetTag"
+        (click)="open(row)"
+        (keydown)="onRowKeydown($event, row)"
+        data-testid="loan-list-row"
+      ></tr>
+    </table>
+
+    <mat-paginator
+      [length]="total()"
+      [pageSize]="pageSize()"
+      [pageIndex]="page() - 1"
+      [pageSizeOptions]="[10, 25, 50]"
+      (page)="onPage($event)"
+      aria-label="Select page of loans"
+      data-testid="loan-paginator"
+    />
+
+    <div class="lt-table-footer">Showing {{ rows().length }} of {{ total() }} loans</div>
+  }
+</div>

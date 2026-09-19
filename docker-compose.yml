@@ -1,0 +1,32 @@
+# LoanTracker — local development infrastructure.
+#
+# Postgres only. The API and the frontend run natively via `dotnet run` / `ng serve`
+# (LoanTracker_Stack_Rules.md [BACKEND_RUN_CMD] / [FRONTEND_SERVE_CMD]) — containerising
+# them would mean Runtime Validation exercises a different process than a developer does.
+#
+# Host port 5433 (not 5432) so a pre-existing local Postgres does not collide.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: loantracker-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env — copy .env.example}
+      # No default, deliberately: a committed default is still a committed credential
+      # (Compliance finding F3). Compose fails fast with the message above if .env is
+      # missing, rather than silently standing up a database with a known password.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env — copy .env.example}
+      # The run-scoped database (loantracker_dev_<branch>) is created by the bootstrap
+      # script, not here — this is only the always-present maintenance database.
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - loantracker-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  loantracker-pgdata:

@@ -1,0 +1,23 @@
+// Shared styling for the two Pattern 18 reference-maintenance surfaces.
+
+.inline-field {
+  width: 100%;
+  max-width: 260px;
+  font-size: 13px;
+}
+
+.row-error {
+  font-size: 11px;
+  color: var(--poor);
+  margin-top: 2px;
+}
+
+// The inline-edit row is highlighted, matching the mockups' --accent-light band.
+tr.editing-row {
+  background: var(--accent-light);
+}
+
+td.mat-mdc-cell {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}

@@ -1,0 +1,273 @@
+@if (loading()) {
+  <div class="lt-breadcrumb"><a routerLink="/borrowers">Borrowers</a></div>
+  <div class="lt-spinner-wrap">
+    <mat-progress-spinner mode="indeterminate" diameter="40" />
+    <span class="lt-sr-only" role="status">Loading borrower</span>
+  </div>
+} @else if (loadError()) {
+  <div class="lt-breadcrumb"><a routerLink="/borrowers">Borrowers</a></div>
+  <div class="lt-card">
+    <div class="lt-error-panel" role="alert" data-testid="borrower-detail-error">
+      {{ loadError() }}
+    </div>
+    <div class="lt-form-actions">
+      <button mat-stroked-button (click)="load()" data-testid="borrower-detail-retry">
+        Try again
+      </button>
+      <button mat-button (click)="backToList()">Back to borrowers</button>
+    </div>
+  </div>
+} @else {
+  @if (borrower(); as b) {
+  <div class="lt-breadcrumb">
+    <a routerLink="/borrowers">Borrowers</a> &gt; {{ b.name }}
+  </div>
+
+  <div class="lt-toolbar">
+    <h1>
+      {{ b.name }}
+      @if (!b.isActive) {
+        <span class="lt-chip lt-chip-terminal" data-testid="borrower-inactive-chip">Inactive</span>
+      }
+    </h1>
+
+    @if (!editing()) {
+      <div class="lt-form-actions">
+        <button
+          mat-stroked-button
+          [ltFocusOnCreate]="editSessionEnded()"
+          (click)="startEdit()"
+          [attr.aria-label]="'Edit borrower ' + b.name"
+          data-testid="borrower-edit-btn"
+        >
+          Edit
+        </button>
+        <button
+          mat-flat-button
+          color="warn"
+          [disabled]="!canDeactivate() || !b.isActive || deactivating()"
+          [attr.title]="
+            !canDeactivate()
+              ? 'Borrower has an open loan'
+              : !b.isActive
+                ? 'Borrower is already inactive'
+                : null
+          "
+          [attr.aria-label]="'Deactivate borrower ' + b.name"
+          (click)="deactivate()"
+          data-testid="borrower-deactivate-btn"
+        >
+          Deactivate
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="lt-card">
+    <!--
+      The hard block (BR §8, SME-resolved). The disabled button alone is not
+      enough: this banner states the reason and names the items still held.
+    -->
+    @if (!canDeactivate()) {
+      <app-guard-banner [message]="guardMessage()" testId="borrower-detail-guard" />
+    }
+
+    @if (deactivateError()) {
+      <div class="lt-error-panel" role="alert" data-testid="borrower-deactivate-error">
+        {{ deactivateError() }}
+      </div>
+    }
+
+    @if (!editing()) {
+      <dl class="lt-detail-grid" data-testid="borrower-detail-grid">
+        <div>
+          <dt class="k">Department</dt>
+          <dd class="v" data-testid="borrower-detail-department">{{ b.department || '—' }}</dd>
+        </div>
+        <div>
+          <dt class="k">Contact email</dt>
+          <dd class="v" data-testid="borrower-detail-email">{{ b.contactEmail || '—' }}</dd>
+        </div>
+        <div>
+          <dt class="k">Contact phone</dt>
+          <dd class="v" data-testid="borrower-detail-phone">{{ b.contactPhone || '—' }}</dd>
+        </div>
+      </dl>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="saveEdit()" novalidate>
+        <h2 class="lt-sr-only">Edit borrower details</h2>
+
+        @if (saveError()) {
+          <div class="lt-error-panel" role="alert" data-testid="borrower-edit-error">
+            {{ saveError() }}
+          </div>
+        }
+
+        <div class="edit-grid">
+          <div class="lt-field">
+            <mat-form-field class="form-field">
+              <mat-label>Name</mat-label>
+              <input
+                #editNameInput
+                ltFocusOnCreate
+                matInput
+                type="text"
+                formControlName="name"
+                placeholder="Full name"
+                required
+                autocomplete="name"
+                data-testid="borrower-edit-name"
+              />
+              @if (name.touched && name.hasError('required')) {
+                <mat-error>Name is required.</mat-error>
+              } @else if (name.hasError('maxlength')) {
+                <mat-error>Name must be 200 characters or fewer.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="lt-field">
+            <mat-form-field class="form-field">
+              <mat-label>Contact email</mat-label>
+              <input
+                matInput
+                type="email"
+                formControlName="contactEmail"
+                placeholder="name@example.org"
+                autocomplete="email"
+                data-testid="borrower-edit-email"
+              />
+              @if (contactEmail.hasError('email')) {
+                <mat-error>Enter a valid email address, for example name&#64;example.org.</mat-error>
+              } @else if (contactEmail.hasError('maxlength')) {
+                <mat-error>Contact email must be 256 characters or fewer.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="lt-field">
+            <mat-form-field class="form-field">
+              <mat-label>Contact phone</mat-label>
+              <input
+                matInput
+                type="tel"
+                formControlName="contactPhone"
+                placeholder="Optional"
+                autocomplete="tel"
+                data-testid="borrower-edit-phone"
+              />
+              @if (contactPhone.hasError('maxlength')) {
+                <mat-error>Contact phone must be 50 characters or fewer.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="lt-field">
+            <mat-form-field class="form-field">
+              <mat-label>Department / group</mat-label>
+              <input
+                matInput
+                type="text"
+                formControlName="department"
+                placeholder="Optional, free text"
+                data-testid="borrower-edit-department"
+              />
+              @if (department.hasError('maxlength')) {
+                <mat-error>Department / group must be 200 characters or fewer.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="lt-form-actions">
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="saving()"
+            (click)="cancelEdit()"
+            data-testid="borrower-edit-cancel"
+          >
+            Cancel
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="saving()"
+            data-testid="borrower-edit-save"
+          >
+            {{ saving() ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+
+  <div class="lt-card">
+    <h3 id="borrower-loans-heading">Loans</h3>
+
+    @if (loans().length === 0) {
+      <app-empty-state
+        variant="no-data"
+        title="No loans yet"
+        hint="Nothing has been checked out to this borrower."
+        [showClear]="false"
+        testId="borrower-loans-empty"
+      />
+    } @else {
+      <table
+        mat-table
+        [dataSource]="loans()"
+        class="lt-table"
+        aria-labelledby="borrower-loans-heading"
+        data-testid="borrower-loan-history-table"
+      >
+        <ng-container matColumnDef="item">
+          <th mat-header-cell *matHeaderCellDef scope="col">Item</th>
+          <td mat-cell *matCellDef="let row">{{ row.itemName }} ({{ row.itemAssetTag }})</td>
+        </ng-container>
+
+        <ng-container matColumnDef="checkedOut">
+          <th mat-header-cell *matHeaderCellDef scope="col">Checked out</th>
+          <td mat-cell *matCellDef="let row">{{ asDate(row.checkedOutAt) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="returned">
+          <th mat-header-cell *matHeaderCellDef scope="col">Returned</th>
+          <td mat-cell *matCellDef="let row">{{ asDate(row.returnedAt) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef scope="col">Status</th>
+          <td mat-cell *matCellDef="let row">
+            <span
+              class="lt-chip"
+              [class.lt-chip-onloan]="row.isOpen"
+              [class.lt-chip-terminal]="!row.isOpen"
+            >
+              {{ row.loanStatusName }}
+            </span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          data-testid="borrower-loan-history-row"
+        ></tr>
+      </table>
+
+      <div class="lt-table-footer" data-testid="borrower-loan-history-footer">
+        Showing {{ loans().length }} of {{ loans().length }} loans for this borrower
+      </div>
+    }
+  </div>
+
+  <p class="lt-a11y-note">
+    Pattern 12 (One-to-many list). Mirrors the Item detail screen's structure — same pattern,
+    different parent. Deactivate is a hard block while a loan is open: the button is disabled and
+    the banner above names the items still held.
+  </p>
+  }
+}

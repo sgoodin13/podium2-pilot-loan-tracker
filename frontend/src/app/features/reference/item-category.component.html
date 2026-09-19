@@ -1,0 +1,142 @@
+<div class="lt-breadcrumb">Reference data &gt; Item Categories</div>
+
+<div class="lt-toolbar">
+  <h1>Item Categories</h1>
+  <div class="lt-form-actions">
+    <button mat-stroked-button (click)="addRow()" data-testid="category-add-row">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      Add row
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      [disabled]="!hasEditingRows"
+      (click)="saveAll()"
+      data-testid="category-save-all"
+    >
+      Save all
+    </button>
+  </div>
+</div>
+
+<div class="lt-card">
+  @if (loading()) {
+    <div class="lt-spinner-wrap">
+      <mat-progress-spinner mode="indeterminate" diameter="40" />
+      <span class="lt-sr-only" role="status">Loading item categories</span>
+    </div>
+  } @else if (loadError()) {
+    <div class="lt-error-panel" role="alert" data-testid="category-load-error">
+      {{ loadError() }}
+    </div>
+    <button mat-stroked-button (click)="load()">Try again</button>
+  } @else if (rows().length === 0) {
+    <app-empty-state
+      variant="no-data"
+      title="No categories yet"
+      hint="Add your first category to start classifying items."
+      [showClear]="false"
+      testId="category-empty"
+    />
+  } @else {
+    <table mat-table [dataSource]="rows()" class="lt-table" data-testid="category-table">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef scope="col">Name</th>
+        <td mat-cell *matCellDef="let row">
+          @if (row.editing) {
+            <mat-form-field class="inline-field">
+              <mat-label>Name</mat-label>
+              <input
+                matInput
+                [(ngModel)]="row.draft.name"
+                required
+                [attr.aria-invalid]="!!row.error"
+                [attr.aria-describedby]="row.error ? 'cat-err-' + row.id : null"
+                [attr.data-testid]="'category-name-input'"
+              />
+            </mat-form-field>
+            @if (row.error) {
+              <div class="row-error" role="alert" [id]="'cat-err-' + row.id">{{ row.error }}</div>
+            }
+          } @else {
+            {{ row.name }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef scope="col">Description</th>
+        <td mat-cell *matCellDef="let row">
+          @if (row.editing) {
+            <mat-form-field class="inline-field">
+              <mat-label>Description</mat-label>
+              <input matInput [(ngModel)]="row.draft.description" data-testid="category-description-input" />
+            </mat-form-field>
+          } @else {
+            {{ row.description || '—' }}
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef scope="col">Active</th>
+        <td mat-cell *matCellDef="let row">
+          @if (row.editing) {
+            <mat-checkbox [(ngModel)]="row.draft.isActive" data-testid="category-active-checkbox">
+              Active
+            </mat-checkbox>
+          } @else {
+            <span class="lt-chip" [class.lt-chip-available]="row.isActive" [class.lt-chip-terminal]="!row.isActive">
+              {{ row.isActive ? 'Yes' : 'No' }}
+            </span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef scope="col">
+          <span class="lt-sr-only">Actions</span>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          @if (row.editing) {
+            <button
+              mat-flat-button
+              color="primary"
+              [disabled]="row.saving"
+              (click)="save(row)"
+              [attr.data-testid]="'category-save-' + (row.isNew ? 'new' : row.id)"
+            >
+              Save
+            </button>
+            <button mat-button [disabled]="row.saving" (click)="cancel(row)">Cancel</button>
+          } @else {
+            <button
+              mat-button
+              (click)="edit(row)"
+              [attr.aria-label]="'Edit category ' + row.name"
+              [attr.data-testid]="'category-edit-' + row.id"
+            >
+              Edit
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        [class.editing-row]="row.editing"
+      ></tr>
+    </table>
+
+    <div class="lt-table-footer">
+      Showing {{ rows().length }} of {{ rows().length }} categories
+    </div>
+  }
+</div>
+
+<p class="lt-a11y-note">
+  Categories are deactivated, never deleted — a category referenced by an active item
+  keeps its reference and simply stops being offered for new items.
+</p>

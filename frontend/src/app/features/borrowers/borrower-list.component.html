@@ -1,0 +1,125 @@
+<div class="lt-breadcrumb">Borrowers</div>
+
+<div class="lt-toolbar">
+  <h1>Borrowers</h1>
+  <a
+    mat-flat-button
+    color="primary"
+    routerLink="/borrowers/new"
+    aria-label="Add borrower"
+    data-testid="borrower-add-link"
+  >
+    <mat-icon aria-hidden="true">add</mat-icon>
+    Add borrower
+  </a>
+</div>
+
+<div class="lt-card">
+  <div class="lt-toolbar-row">
+    <mat-form-field class="search-field">
+      <mat-label>Search borrowers</mat-label>
+      <input
+        matInput
+        type="search"
+        placeholder="Search borrowers…"
+        aria-label="Search borrowers"
+        [ngModel]="search()"
+        (ngModelChange)="onSearchInput($event)"
+        data-testid="borrower-list-search"
+      />
+      <mat-icon matSuffix aria-hidden="true">search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton-rows [rows]="5" [columns]="4" />
+    <span class="lt-sr-only" role="status">Loading borrowers</span>
+  } @else if (loadError()) {
+    <div class="lt-error-panel" role="alert" data-testid="borrower-list-error">
+      {{ loadError() }}
+    </div>
+    <button mat-stroked-button (click)="load()" data-testid="borrower-list-retry">Try again</button>
+  } @else if (rows().length === 0) {
+    @if (isFiltered) {
+      <app-empty-state
+        variant="no-results"
+        title="No results match your search"
+        hint="No borrower matches that name or email. Clear the search to see everyone."
+        testId="borrower-empty-filtered"
+        (clearFilters)="clearFilters()"
+      />
+    } @else {
+      <app-empty-state
+        variant="no-data"
+        title="No borrowers yet"
+        hint="Add your first borrower to start checking equipment out."
+        [showClear]="false"
+        testId="borrower-empty"
+      />
+    }
+  } @else {
+    <table
+      mat-table
+      [dataSource]="rows()"
+      matSort
+      (matSortChange)="onSort($event)"
+      class="lt-table"
+      data-testid="borrower-list-table"
+    >
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef scope="col" mat-sort-header="name">Name</th>
+        <td mat-cell *matCellDef="let row" data-testid="borrower-list-name">{{ row.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="department">
+        <th mat-header-cell *matHeaderCellDef scope="col" mat-sort-header="department">
+          Department
+        </th>
+        <td mat-cell *matCellDef="let row">{{ row.department || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="contact">
+        <th mat-header-cell *matHeaderCellDef scope="col">Contact</th>
+        <td mat-cell *matCellDef="let row">{{ contactOf(row) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="openLoans">
+        <th mat-header-cell *matHeaderCellDef scope="col">Open loans</th>
+        <td mat-cell *matCellDef="let row" class="open-loans" data-testid="borrower-list-open-loans">
+          {{ row.openLoanCount }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        class="borrower-row"
+        tabindex="0"
+        [attr.aria-label]="'Open borrower ' + row.name"
+        data-testid="borrower-list-row"
+        (click)="open(row)"
+        (keydown)="onRowKeydown($event, row)"
+      ></tr>
+    </table>
+
+    <div class="lt-table-footer" data-testid="borrower-list-footer">
+      Showing {{ rows().length }} of {{ total() }} borrowers
+    </div>
+
+    <mat-paginator
+      [length]="total()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 25, 50]"
+      (page)="onPage($event)"
+      aria-label="Select a page of borrowers"
+      data-testid="borrower-list-paginator"
+    />
+  }
+</div>
+
+<p class="lt-a11y-note">
+  Pattern 08 (Simple flat grid). "Open loans" gives Staff a quick signal before attempting to
+  deactivate someone.
+</p>

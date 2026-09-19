@@ -143,6 +143,11 @@ Full parent/child table delivered as `requirements/loantracker/LoanTracker_Requi
 - `[RULING: auth]` Stub middleware only — every request treated as authenticated Staff. No login flow, no second role.
 - `[RULING: retire/deactivate guard]` Hard-block, not a warning, when retiring an item or deactivating a borrower with an open loan — per SME (Priya Anand) recommendation, `Business_Requirements/LoanTracker_Business_Requirements_v1.md` §8, resolved.
 - `[RULING: BR-1 enforcement]` The item-already-on-loan rule is enforced at the database layer (filtered unique index `ux_loans_item_open`), never only in application code or the UI. This is not negotiable at Gate 3.
+- `[RULING: C1/C2/C7 N/A — recorded here per Standards Guide §9, post-Gate-4]` Confirms the Gate 3 ruling: Standards Guide conventions C1, C2, and C7 are N/A for LoanTracker — no user identity/session exists (stub auth, no User entity). Applied correctly throughout the build; this entry corrects where it's recorded, not the ruling itself.
+- `[RULING: C4/C5 N/A, post-Gate-4]` Localization (C4) and product-specific timestamp-display conventions (C5) are N/A — single-language product (en-US only, no RTL), audit columns already timestamptz/UTC-aware. Disproportionate scope for a methodology pilot.
+- `[RULING: CI pipeline — accepted gap, post-Gate-4]` No CI pipeline built for Standards Guide #13 (a11y as a build gate). Accepted, not fixed — one-off pilot, no ongoing team needing continuous enforcement. A11y genuinely verified via scripted axe runs (20 scans, 0 violations).
+- `[RULING: quality scan tool, post-Gate-4]` SonarQube/SonarCloud declined for this pilot. Compliance audit's corresponding checklist line stays unexecuted by explicit Orchestrator decision, not omission.
+- `[RULING: committed password — accepted, not rotated, post-Gate-4]` DB password recoverable from git history (`32d526f`) is a throwaway local credential. Accepted as-is; history not rewritten (destructive, correctly declined). Already removed from current working state (user-secrets + gitignored `.env`).
 
 ## 5. Product context
 

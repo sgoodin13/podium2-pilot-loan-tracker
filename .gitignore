@@ -1,0 +1,35 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+appsettings.Development.local.json
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+
+# Test output
+TestResults/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# Docker volumes
+.docker-data/
+
+# IDE
+.vs/
+.idea/
+*.swp
+.DS_Store
+
+# Subagent build output (kept out of the locked bin/ path)
+.qa-out/
+
+# Local credentials (see .env.example)
+.env

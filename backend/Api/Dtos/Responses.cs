@@ -1,0 +1,149 @@
+using Api.Data.Entities;
+
+namespace Api.Dtos;
+
+/// <summary>Server-side pagination envelope — every list endpoint returns this.</summary>
+public record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);
+
+/// <summary>
+/// A category, carrying the count of active items that still reference it.
+/// </summary>
+/// <remarks>
+/// <paramref name="ActiveItemCount"/> exists so deactivation can be confirmed with its
+/// effect named, per Standards Guide C3 — "does anything else reference this record."
+/// The backend already had to compute this to log it; returning it lets the UI ask
+/// before the save rather than after (Compliance finding F5).
+/// <para>
+/// It has NO default, deliberately. A default of zero made the create and update call
+/// sites look correct while silently returning "nothing references this" — and the
+/// frontend overwrites its row from the save response, so one unrelated edit disarmed
+/// the confirmation for the next one. Requiring the argument makes the compiler find
+/// every call site instead.
+/// </para>
+/// </remarks>
+public record ItemCategoryResponse(
+    Guid Id,
+    string Name,
+    string? Description,
+    bool IsActive,
+    int ActiveItemCount)
+{
+    public static ItemCategoryResponse From(ItemCategory c, int activeItemCount) =>
+        new(c.Id, c.Name, c.Description, c.IsActive, activeItemCount);
+}
+
+public record LoanStatusResponse(
+    Guid Id,
+    string Name,
+    string? Description,
+    bool IsTerminal,
+    bool IsActive)
+{
+    public static LoanStatusResponse From(LoanStatus s) =>
+        new(s.Id, s.Name, s.Description, s.IsTerminal, s.IsActive);
+}
+
+/// <summary>
+/// An item, with its availability derived rather than stored.
+/// </summary>
+/// <remarks>
+/// <see cref="IsOnLoan"/> is computed from whether an open loan exists — the SME
+/// ruling in BR §8 is explicit that availability must never be a stored status
+/// field that can drift from the loan ledger.
+/// </remarks>
+public record ItemResponse(
+    Guid Id,
+    string Name,
+    string? Description,
+    string AssetTag,
+    Guid ItemCategoryId,
+    string ItemCategoryName,
+    bool IsActive,
+    bool IsOnLoan,
+    string? CurrentBorrowerName,
+    Guid? CurrentLoanId)
+{
+    public static ItemResponse From(Item item, Loan? openLoan) =>
+        new(
+            item.Id,
+            item.Name,
+            item.Description,
+            item.AssetTag,
+            item.ItemCategoryId,
+            item.ItemCategory?.Name ?? string.Empty,
+            item.IsActive,
+            openLoan is not null,
+            openLoan?.Borrower?.Name,
+            openLoan?.Id);
+
+    /// <summary>
+    /// Projection for a page of items, where the holder comes from a single
+    /// page-wide lookup rather than a per-row read.
+    /// </summary>
+    public static ItemResponse From(
+        Item item,
+        bool isOnLoan,
+        string? currentBorrowerName,
+        Guid? currentLoanId) =>
+        new(
+            item.Id,
+            item.Name,
+            item.Description,
+            item.AssetTag,
+            item.ItemCategoryId,
+            item.ItemCategory?.Name ?? string.Empty,
+            item.IsActive,
+            isOnLoan,
+            currentBorrowerName,
+            currentLoanId);
+}
+
+public record BorrowerResponse(
+    Guid Id,
+    string Name,
+    string? ContactEmail,
+    string? ContactPhone,
+    string? Department,
+    bool IsActive,
+    int OpenLoanCount)
+{
+    public static BorrowerResponse From(Borrower b, int openLoanCount) =>
+        new(
+            b.Id,
+            b.Name,
+            b.ContactEmail,
+            b.ContactPhone,
+            b.Department,
+            b.IsActive,
+            openLoanCount);
+}
+
+public record LoanResponse(
+    Guid Id,
+    Guid ItemId,
+    string ItemName,
+    string ItemAssetTag,
+    Guid BorrowerId,
+    string BorrowerName,
+    Guid LoanStatusId,
+    string LoanStatusName,
+    bool LoanStatusIsTerminal,
+    DateTimeOffset CheckedOutAt,
+    DateTimeOffset? ReturnedAt,
+    bool IsOpen)
+{
+    public static LoanResponse From(Loan loan) =>
+        new(
+            loan.Id,
+            loan.ItemId,
+            loan.Item?.Name ?? string.Empty,
+            loan.Item?.AssetTag ?? string.Empty,
+            loan.BorrowerId,
+            loan.Borrower?.Name ?? string.Empty,
+            loan.LoanStatusId,
+            loan.LoanStatus?.Name ?? string.Empty,
+            loan.LoanStatus?.IsTerminal ?? false,
+            loan.CheckedOutAt,
+            loan.ReturnedAt,
+            loan.ReturnedAt is null);
+}
